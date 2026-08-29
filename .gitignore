@@ -1,0 +1,36 @@
+.DS_Store
+
+# Python virtual environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local tooling and secrets
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+
+# Raw/local datasets
+data/raw/**
+!data/raw/.gitkeep
+
+# Generated artifacts
+outputs/**
+!outputs/*/
+!outputs/*/.gitkeep
+*.mp4
+*.mov
+*.avi
+
+# Model weights and exports
+*.pt
+*.pth
+*.onnx
+

@@ -1,0 +1,2 @@
+"""Spatial module placeholder."""
+

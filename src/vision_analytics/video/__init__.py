@@ -1,0 +1,2 @@
+"""Video module placeholder."""
+

@@ -1,0 +1,2 @@
+# Stage 0 direct development dependency.
+pytest==9.1.1
