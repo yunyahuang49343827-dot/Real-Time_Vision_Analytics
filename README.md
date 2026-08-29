@@ -1,9 +1,10 @@
 # Real-Time Vision Analytics & Event Detection System
 
 This repository currently contains project setup, source governance, video
-profiling, an OpenCV pipeline, and the **Stage 4 YOLO26n pretrained detection
-baseline**. Tracking, spatial analysis, event detection, APIs, and dashboards are
-deliberately not implemented yet.
+profiling, an OpenCV pipeline, the Stage 4 YOLO26n pretrained detection baseline,
+and **Stage 5 structured qualitative error analysis**. Tracking, spatial
+analysis, event detection, APIs, and dashboards are deliberately not implemented
+yet.
 
 ## Requirements
 
@@ -77,6 +78,22 @@ python scripts/run_detection.py
 
 Generated overlay MP4s, per-video detection CSV/summary JSON files, and the
 end-to-end Stage 4 benchmark remain under `outputs/` and are Git-ignored.
+
+## Prepare the Stage 5 qualitative review
+
+The preparation script computes per-class confidence distributions and selects
+96 unique frames using uniform temporal and scene-aware targeted sampling. It
+extracts raw/overlay comparison images without rerunning YOLO. Visual findings
+and limitations are documented in `docs/stage5_error_analysis.md`.
+
+```bash
+python scripts/prepare_error_analysis.py
+```
+
+Generated review frames, contact sheets, sampling summaries, and the completed
+manual review CSV remain under `outputs/` and are Git-ignored. Confidence is a
+model score, not correctness; Stage 5 does not calculate Precision, Recall, or
+mAP.
 
 ## Project layout
 
