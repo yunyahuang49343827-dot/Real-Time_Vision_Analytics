@@ -1,6 +1,7 @@
 # Stage 0 direct runtime dependencies, resolved for Python 3.11 on Apple Silicon.
 torch==2.13.0
 ultralytics==8.4.132
+lap==0.5.13
 opencv-python==5.0.0.93
 pandas==3.0.5
 fastapi==0.141.1

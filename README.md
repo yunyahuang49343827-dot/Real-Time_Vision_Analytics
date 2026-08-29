@@ -2,9 +2,9 @@
 
 This repository currently contains project setup, source governance, video
 profiling, an OpenCV pipeline, the Stage 4 YOLO26n pretrained detection baseline,
-and **Stage 5 structured qualitative error analysis**. Tracking, spatial
-analysis, event detection, APIs, and dashboards are deliberately not implemented
-yet.
+and **Stage 5 structured qualitative error analysis**. Stage 6 adds video-scoped
+ByteTrack IDs as tracking diagnostics. Spatial analysis, event detection, APIs,
+and dashboards are deliberately not implemented yet.
 
 ## Requirements
 
@@ -94,6 +94,22 @@ Generated review frames, contact sheets, sampling summaries, and the completed
 manual review CSV remain under `outputs/` and are Git-ignored. Confidence is a
 model score, not correctness; Stage 5 does not calculate Precision, Recall, or
 mAP.
+
+## Run Stage 6 multi-object tracking
+
+The tracking script keeps one Ultralytics ByteTrack state alive across all
+sequential frames of each video. It uses the unchanged Stage 4 YOLO26n/MPS
+settings and the stock `bytetrack.yaml` configuration.
+
+```bash
+python scripts/run_tracking.py
+```
+
+Stage 6 overlay MP4s, track-observation CSV files, summary JSON files, and the
+end-to-end benchmark remain under `outputs/` and are Git-ignored. Track IDs are
+scoped to one video and are diagnostic identifiers, not traffic or business
+counts. Qualitative observations are recorded in
+`docs/stage6_tracking_review.md`.
 
 ## Project layout
 
