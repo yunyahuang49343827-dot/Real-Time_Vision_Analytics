@@ -111,6 +111,22 @@ scoped to one video and are diagnostic identifiers, not traffic or business
 counts. Qualitative observations are recorded in
 `docs/stage6_tracking_review.md`.
 
+## Run the Stage 7 trajectory engine
+
+The trajectory runner adds a 30-observation bounded recent trail to each
+video-scoped Track ID and derives image-space delta, displacement, frame-gap,
+and recent-window direction features. A 5-pixel net-displacement threshold maps
+small movement to `STATIONARY`; this is a movement label, not an event.
+
+```bash
+python scripts/run_trajectory.py
+```
+
+Generated trajectory MP4s, CSV files, summary JSON files, and the end-to-end
+benchmark remain under `outputs/` and are Git-ignored. All displacement values
+are pixels, not physical distance or speed. Qualitative observations are in
+`docs/stage7_trajectory_review.md`.
+
 ## Project layout
 
 ```text
