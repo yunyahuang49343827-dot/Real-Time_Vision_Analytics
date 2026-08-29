@@ -1,0 +1,5 @@
+video_id,filename,source_id,file_size_mb,width,height,fps,frame_count,duration_seconds,codec,opencv_opened,first_frame_decoded,validation_status,validation_message
+pexels_2103099_traffic_flow_highway,pexels_2103099_traffic_flow_highway.mp4,pexels_2103099,175.325,3840,2160,30.0,1800,60.0,h264,True,True,PASS,All required video checks passed
+pexels_13258685_traffic_in_city,pexels_13258685_traffic_in_city.mp4,pexels_13258685,81.614,1920,1080,50.0,5958,119.16,h264,True,True,PASS,All required video checks passed
+pexels_37258214_urban_traffic_cars_motorcycles,pexels_37258214_urban_traffic_cars_motorcycles.mp4,pexels_37258214,39.454,1920,1080,59.94006,2091,34.885,h264,True,True,PASS,All required video checks passed
+pexels_9322363_aerial_busy_intersection,pexels_9322363_aerial_busy_intersection.mp4,pexels_9322363,10.814,1920,1080,29.97003,473,15.782,h264,True,True,PASS,All required video checks passed

@@ -1,8 +1,8 @@
 # Real-Time Vision Analytics & Event Detection System
 
-This repository currently contains **Stage 0: Project Setup only**. Detection,
-tracking, spatial analysis, event detection, APIs, and dashboards are deliberately
-not implemented yet.
+This repository currently contains project setup, source governance, and
+**Stage 2: Video Profiling & Validation**. Detection, tracking, spatial analysis,
+event detection, APIs, and dashboards are deliberately not implemented yet.
 
 ## Requirements
 
@@ -36,6 +36,19 @@ git status
 The check must report `PASS`. If MPS is not built or available, it exits with a
 failure instead of silently falling back to CPU.
 
+## Profile Stage 1 runtime videos
+
+The profiler reads container metadata and decodes only the first frame of each
+runtime video listed in `data/manifests/sources.csv`. It does not run detection
+or a full-frame benchmark.
+
+```bash
+python scripts/profile_videos.py
+```
+
+Results are written to `data/interim/video_metadata.csv`. Source and license
+governance details are documented in `docs/data_sources.md`.
+
 ## Project layout
 
 ```text
@@ -47,4 +60,3 @@ src/vision_analytics/{video,detection,tracking,spatial,events,analytics,services
 scripts/
 tests/
 ```
-

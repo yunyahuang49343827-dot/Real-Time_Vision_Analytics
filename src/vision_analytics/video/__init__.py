@@ -1,2 +1,1 @@
-"""Video module placeholder."""
-
+"""Video metadata profiling and validation."""
