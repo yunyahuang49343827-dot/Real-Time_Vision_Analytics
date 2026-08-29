@@ -1,0 +1,17 @@
+source_id,source_class,application_class,mapping_type,notes
+roboflow_hsiang_taiwan_cctv_v3,human,person,rename,Manifest-layer mapping only; raw label remains human
+roboflow_hsiang_taiwan_cctv_v3,motorbike,motorcycle,rename,Manifest-layer mapping only; raw label remains motorbike
+roboflow_hsiang_taiwan_cctv_v3,car,car,identity,Raw label is unchanged
+roboflow_hsiang_taiwan_cctv_v3,truck,truck,identity,Raw label is unchanged
+roboflow_hsiang_taiwan_cctv_v3,bus,bus,identity,Raw label is unchanged
+roboflow_hsiang_taiwan_cctv_v3,bicycle,bicycle,identity,Raw label is unchanged
+fisheye8k_2024jan,Pedestrian,person,rename_case_normalization,Manifest-layer mapping only; raw label remains Pedestrian
+fisheye8k_2024jan,Bike,,ambiguous_unmapped,Source documentation does not establish bicycle versus motorcycle; reconcile before evaluation
+fisheye8k_2024jan,Car,car,case_normalization,Manifest-layer mapping only; raw label remains Car
+fisheye8k_2024jan,Bus,bus,case_normalization,Manifest-layer mapping only; raw label remains Bus
+fisheye8k_2024jan,Truck,truck,case_normalization,Manifest-layer mapping only; raw label remains Truck
+fe_detrac_2026_b1,Pedestrian,person,rename_case_normalization,Manifest-layer mapping only; raw label remains Pedestrian
+fe_detrac_2026_b1,Bike,,ambiguous_unmapped,Source documentation does not establish bicycle versus motorcycle; reconcile before evaluation
+fe_detrac_2026_b1,Car,car,case_normalization,Manifest-layer mapping only; raw label remains Car
+fe_detrac_2026_b1,Bus,bus,case_normalization,Manifest-layer mapping only; raw label remains Bus
+fe_detrac_2026_b1,Truck,truck,case_normalization,Manifest-layer mapping only; raw label remains Truck
