@@ -8,18 +8,34 @@ scenes:
       - line_id: highway_main
         start: [0.08, 0.62]
         end: [0.92, 0.62]
+    zones:
+      - zone_id: highway_approach
+        type: vehicle_monitoring
+        points: [[0.18, 0.54], [0.82, 0.54], [0.96, 0.98], [0.04, 0.98]]
   pexels_13258685:
     lines:
       - line_id: taipei_center
         start: [0.50, 0.15]
         end: [0.50, 0.92]
+    zones:
+      - zone_id: taipei_crossing
+        type: mixed_road_users
+        points: [[0.18, 0.35], [0.82, 0.35], [0.88, 0.88], [0.12, 0.88]]
   pexels_37258214:
     lines:
       - line_id: urban_center
         start: [0.50, 0.30]
         end: [0.50, 0.90]
+    zones:
+      - zone_id: urban_intersection
+        type: mixed_traffic
+        points: [[0.18, 0.36], [0.82, 0.36], [0.88, 0.90], [0.12, 0.90]]
   pexels_9322363:
     lines:
       - line_id: aerial_center
         start: [0.50, 0.08]
         end: [0.50, 0.92]
+    zones:
+      - zone_id: aerial_intersection
+        type: vehicle_monitoring
+        points: [[0.20, 0.22], [0.80, 0.22], [0.82, 0.84], [0.18, 0.84]]

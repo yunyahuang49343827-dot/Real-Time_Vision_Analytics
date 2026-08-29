@@ -143,6 +143,21 @@ benchmark remain under `outputs/` and are Git-ignored. Counts are Track-ID-based
 line crossings, not perfect Ground Truth traffic counts. Configuration and
 qualitative review are documented in `docs/stage8_line_crossing_review.md`.
 
+## Run Stage 9 polygon-zone analysis
+
+Stage 9 converts normalized polygons from `configs/scenes.yaml` to pixels and
+maintains OUTSIDE/ENTER/INSIDE/EXIT membership keyed by video, zone, and Track
+ID. Boundary points are inside; missing observations never synthesize EXIT.
+
+```bash
+python scripts/run_zone_analysis.py
+```
+
+Generated Zone overlay MP4s, ENTER/EXIT CSV files, summary JSON files, and the
+benchmark remain under `outputs/` and are Git-ignored. Zone diagnostics are not
+Ground Truth unique visitors or formal traffic analytics. Review details are in
+`docs/stage9_zone_review.md`.
+
 ## Project layout
 
 ```text
