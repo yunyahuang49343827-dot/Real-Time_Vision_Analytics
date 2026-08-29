@@ -1,0 +1,25 @@
+defaults:
+  maximum_frame_gap: 5
+  minimum_movement_pixels: 3.0
+
+scenes:
+  pexels_2103099:
+    lines:
+      - line_id: highway_main
+        start: [0.08, 0.62]
+        end: [0.92, 0.62]
+  pexels_13258685:
+    lines:
+      - line_id: taipei_center
+        start: [0.50, 0.15]
+        end: [0.50, 0.92]
+  pexels_37258214:
+    lines:
+      - line_id: urban_center
+        start: [0.50, 0.30]
+        end: [0.50, 0.90]
+  pexels_9322363:
+    lines:
+      - line_id: aerial_center
+        start: [0.50, 0.08]
+        end: [0.50, 0.92]

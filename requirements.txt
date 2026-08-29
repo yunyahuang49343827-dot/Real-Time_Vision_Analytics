@@ -4,5 +4,6 @@ ultralytics==8.4.132
 lap==0.5.13
 opencv-python==5.0.0.93
 pandas==3.0.5
+PyYAML==6.0.3
 fastapi==0.141.1
 streamlit==1.62.0

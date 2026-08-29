@@ -127,6 +127,22 @@ benchmark remain under `outputs/` and are Git-ignored. All displacement values
 are pixels, not physical distance or speed. Qualitative observations are in
 `docs/stage7_trajectory_review.md`.
 
+## Run Stage 8 line-crossing counts
+
+Stage 8 converts normalized scene lines from `configs/scenes.yaml` to finite
+pixel segments and counts a Track ID at most once per video and line. A crossing
+requires opposite line sides, finite-segment intersection, a frame gap of at
+most five, and at least three pixels of observed movement.
+
+```bash
+python scripts/run_line_crossing.py
+```
+
+Generated crossing MP4s, CSV files, summary JSON files, and the Stage 8
+benchmark remain under `outputs/` and are Git-ignored. Counts are Track-ID-based
+line crossings, not perfect Ground Truth traffic counts. Configuration and
+qualitative review are documented in `docs/stage8_line_crossing_review.md`.
+
 ## Project layout
 
 ```text
