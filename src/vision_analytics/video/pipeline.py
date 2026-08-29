@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import cv2
@@ -26,6 +27,8 @@ BENCHMARK_FIELDS = (
     "status",
     "validation_message",
 )
+
+FrameProcessor = Callable[[object, int, float, float], None]
 
 
 def add_overlay(
@@ -102,8 +105,9 @@ def process_video(
     video_id: str,
     source_id: str,
     output_codec: str = "mp4v",
+    frame_processor: FrameProcessor | None = None,
 ) -> dict[str, object]:
-    """Process every frame with an overlay and validate the generated MP4."""
+    """Process every frame, optionally using a caller-provided in-place callback."""
     input_path = Path(input_path)
     output_path = Path(output_path)
     result = _empty_result(
@@ -154,15 +158,24 @@ def process_video(
             decoded, frame = capture.read()
             if not decoded:
                 break
-            add_overlay(
-                frame,
-                video_id=video_id,
-                frame_index=frames_processed,
-                source_fps=float(input_metadata["fps"]),
-            )
+            timestamp_seconds = frames_processed / float(input_metadata["fps"])
+            if frame_processor is None:
+                add_overlay(
+                    frame,
+                    video_id=video_id,
+                    frame_index=frames_processed,
+                    source_fps=float(input_metadata["fps"]),
+                )
+            else:
+                frame_processor(
+                    frame,
+                    frames_processed,
+                    timestamp_seconds,
+                    float(input_metadata["fps"]),
+                )
             writer.write(frame)
             frames_processed += 1
-    except (OSError, cv2.error) as exc:
+    except (OSError, RuntimeError, cv2.error) as exc:
         processing_error = f"OpenCV processing error: {exc}"
     finally:
         capture.release()

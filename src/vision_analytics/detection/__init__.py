@@ -1,2 +1,1 @@
-"""Detection module placeholder."""
-
+"""Pretrained multi-class object detection."""

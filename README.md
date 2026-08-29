@@ -1,9 +1,9 @@
 # Real-Time Vision Analytics & Event Detection System
 
 This repository currently contains project setup, source governance, video
-profiling, and the **Stage 3 OpenCV-only video pipeline**. Detection, tracking,
-spatial analysis, event detection, APIs, and dashboards are deliberately not
-implemented yet.
+profiling, an OpenCV pipeline, and the **Stage 4 YOLO26n pretrained detection
+baseline**. Tracking, spatial analysis, event detection, APIs, and dashboards are
+deliberately not implemented yet.
 
 ## Requirements
 
@@ -64,6 +64,19 @@ python scripts/process_videos.py
 Processed videos are written under `outputs/videos/stage3/`; benchmark results
 are written to `outputs/analytics/stage3_video_benchmark.csv`. Both are generated
 artifacts and remain Git-ignored.
+
+## Run the Stage 4 pretrained detection baseline
+
+The detector runs `yolo26n.pt` on Apple MPS at image size 640 and confidence
+threshold 0.25. It retains person, bicycle, car, motorcycle, bus, and truck
+detection occurrences. It does not perform tracking or object counting.
+
+```bash
+python scripts/run_detection.py
+```
+
+Generated overlay MP4s, per-video detection CSV/summary JSON files, and the
+end-to-end Stage 4 benchmark remain under `outputs/` and are Git-ignored.
 
 ## Project layout
 
