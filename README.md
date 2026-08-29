@@ -1,8 +1,9 @@
 # Real-Time Vision Analytics & Event Detection System
 
-This repository currently contains project setup, source governance, and
-**Stage 2: Video Profiling & Validation**. Detection, tracking, spatial analysis,
-event detection, APIs, and dashboards are deliberately not implemented yet.
+This repository currently contains project setup, source governance, video
+profiling, and the **Stage 3 OpenCV-only video pipeline**. Detection, tracking,
+spatial analysis, event detection, APIs, and dashboards are deliberately not
+implemented yet.
 
 ## Requirements
 
@@ -48,6 +49,21 @@ python scripts/profile_videos.py
 
 Results are written to `data/interim/video_metadata.csv`. Source and license
 governance details are documented in `docs/data_sources.md`.
+
+## Run the Stage 3 OpenCV pipeline
+
+The pipeline decodes each complete runtime video, adds a simple identifier/frame
+index/timestamp overlay, and writes an MP4 at the original resolution. Its
+reported processing FPS is an end-to-end decode + overlay + write baseline, not
+a pure decode or model-inference benchmark.
+
+```bash
+python scripts/process_videos.py
+```
+
+Processed videos are written under `outputs/videos/stage3/`; benchmark results
+are written to `outputs/analytics/stage3_video_benchmark.csv`. Both are generated
+artifacts and remain Git-ignored.
 
 ## Project layout
 
