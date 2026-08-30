@@ -3,6 +3,7 @@ defaults:
   minimum_movement_pixels: 3.0
   wrong_way_consecutive_observations: 8
   wrong_way_minimum_net_displacement_pixels: 20.0
+  temporal_maximum_missing_seconds: 1.0
 
 scenes:
   pexels_2103099:
@@ -14,11 +15,19 @@ scenes:
       - zone_id: highway_approach
         type: vehicle_monitoring
         points: [[0.18, 0.54], [0.82, 0.54], [0.96, 0.98], [0.04, 0.98]]
+        dwell_threshold_seconds: 8.0
+        dwell_applicable_classes: [car, motorcycle, bus, truck]
       - zone_id: highway_inbound_direction
         type: direction_monitoring
         points: [[0.43, 0.30], [0.88, 0.30], [0.97, 0.98], [0.45, 0.98]]
         allowed_directions: [DOWN_LEFT, DOWN, DOWN_RIGHT]
         applicable_classes: [car, motorcycle, bus, truck]
+      - zone_id: highway_shoulder_stationary
+        type: stationary_monitoring
+        points: [[0.70, 0.32], [0.84, 0.32], [0.99, 0.98], [0.89, 0.98]]
+        stationary_duration_seconds: 5.0
+        stationary_movement_threshold_normalized: 0.003
+        stationary_applicable_classes: [car, motorcycle, bus, truck]
   pexels_13258685:
     lines:
       - line_id: taipei_center
@@ -28,6 +37,8 @@ scenes:
       - zone_id: taipei_crossing
         type: mixed_road_users
         points: [[0.18, 0.35], [0.82, 0.35], [0.88, 0.88], [0.12, 0.88]]
+        dwell_threshold_seconds: 12.0
+        dwell_applicable_classes: [person, bicycle, car, motorcycle, bus, truck]
   pexels_37258214:
     lines:
       - line_id: urban_center
@@ -37,6 +48,8 @@ scenes:
       - zone_id: urban_intersection
         type: mixed_traffic
         points: [[0.18, 0.36], [0.82, 0.36], [0.88, 0.90], [0.12, 0.90]]
+        dwell_threshold_seconds: 8.0
+        dwell_applicable_classes: [person, bicycle, car, motorcycle, bus, truck]
   pexels_9322363:
     lines:
       - line_id: aerial_center
@@ -46,3 +59,5 @@ scenes:
       - zone_id: aerial_intersection
         type: vehicle_monitoring
         points: [[0.20, 0.22], [0.80, 0.22], [0.82, 0.84], [0.18, 0.84]]
+        dwell_threshold_seconds: 5.0
+        dwell_applicable_classes: [car, motorcycle, bus, truck]

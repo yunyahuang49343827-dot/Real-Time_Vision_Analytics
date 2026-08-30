@@ -175,6 +175,23 @@ legitimately produce zero confirmed wrong-way rows; rules are not reversed to
 manufacture detections. Review details are in
 `docs/stage10_wrong_way_review.md`.
 
+## Run Stage 11 temporal rules
+
+Stage 11 maintains separate observed episodes for `LONG_DWELL` and
+`STATIONARY_VEHICLE`. Dwell uses source timestamps and Zone state; stationary
+monitoring additionally requires an explicitly configured zone, vehicle class,
+duration, and low frame-diagonal-normalized image displacement.
+
+```bash
+python scripts/run_temporal_rules.py
+```
+
+Temporary missing observations do not synthesize EXIT, while gaps beyond the
+configured limit restart observable continuity. Generated overlays, CSV/summary
+files, and the benchmark remain Git-ignored under `outputs/`. These diagnostics
+are not physical speed measurements or formal accuracy results. Review details
+are in `docs/stage11_temporal_rules_review.md`.
+
 ## Project layout
 
 ```text
