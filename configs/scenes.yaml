@@ -1,6 +1,8 @@
 defaults:
   maximum_frame_gap: 5
   minimum_movement_pixels: 3.0
+  wrong_way_consecutive_observations: 8
+  wrong_way_minimum_net_displacement_pixels: 20.0
 
 scenes:
   pexels_2103099:
@@ -12,6 +14,11 @@ scenes:
       - zone_id: highway_approach
         type: vehicle_monitoring
         points: [[0.18, 0.54], [0.82, 0.54], [0.96, 0.98], [0.04, 0.98]]
+      - zone_id: highway_inbound_direction
+        type: direction_monitoring
+        points: [[0.43, 0.30], [0.88, 0.30], [0.97, 0.98], [0.45, 0.98]]
+        allowed_directions: [DOWN_LEFT, DOWN, DOWN_RIGHT]
+        applicable_classes: [car, motorcycle, bus, truck]
   pexels_13258685:
     lines:
       - line_id: taipei_center

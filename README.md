@@ -158,6 +158,23 @@ benchmark remain under `outputs/` and are Git-ignored. Zone diagnostics are not
 Ground Truth unique visitors or formal traffic analytics. Review details are in
 `docs/stage9_zone_review.md`.
 
+## Run Stage 10 wrong-way monitoring
+
+Stage 10 combines recent-window trajectory direction with polygon-zone context
+and config-defined allowed directions. A disallowed, non-stationary movement
+must meet the pixel-displacement threshold for consecutive observations before
+one video/zone/Track diagnostic is confirmed.
+
+```bash
+python scripts/run_wrong_way.py
+```
+
+Generated overlays, per-video detection CSV/summary JSON files, and the Stage 10
+benchmark remain under `outputs/` and are Git-ignored. Natural videos may
+legitimately produce zero confirmed wrong-way rows; rules are not reversed to
+manufacture detections. Review details are in
+`docs/stage10_wrong_way_review.md`.
+
 ## Project layout
 
 ```text
