@@ -17,6 +17,8 @@ scenes:
         points: [[0.18, 0.54], [0.82, 0.54], [0.96, 0.98], [0.04, 0.98]]
         dwell_threshold_seconds: 8.0
         dwell_applicable_classes: [car, motorcycle, bus, truck]
+        proximity:
+          enabled: false
       - zone_id: highway_inbound_direction
         type: direction_monitoring
         points: [[0.43, 0.30], [0.88, 0.30], [0.97, 0.98], [0.45, 0.98]]
@@ -39,6 +41,13 @@ scenes:
         points: [[0.18, 0.35], [0.82, 0.35], [0.88, 0.88], [0.12, 0.88]]
         dwell_threshold_seconds: 12.0
         dwell_applicable_classes: [person, bicycle, car, motorcycle, bus, truck]
+        proximity:
+          enabled: true
+          vehicle_classes: [bicycle, car, motorcycle, bus, truck]
+          trigger_distance_normalized: 0.012
+          release_distance_normalized: 0.020
+          minimum_consecutive_observations: 8
+          rider_overlap_exclusion_ratio: 0.25
   pexels_37258214:
     lines:
       - line_id: urban_center
@@ -50,6 +59,13 @@ scenes:
         points: [[0.18, 0.36], [0.82, 0.36], [0.88, 0.90], [0.12, 0.90]]
         dwell_threshold_seconds: 8.0
         dwell_applicable_classes: [person, bicycle, car, motorcycle, bus, truck]
+        proximity:
+          enabled: true
+          vehicle_classes: [bicycle, car, motorcycle, bus, truck]
+          trigger_distance_normalized: 0.012
+          release_distance_normalized: 0.020
+          minimum_consecutive_observations: 8
+          rider_overlap_exclusion_ratio: 0.25
   pexels_9322363:
     lines:
       - line_id: aerial_center
@@ -61,3 +77,5 @@ scenes:
         points: [[0.20, 0.22], [0.80, 0.22], [0.82, 0.84], [0.18, 0.84]]
         dwell_threshold_seconds: 5.0
         dwell_applicable_classes: [car, motorcycle, bus, truck]
+        proximity:
+          enabled: false

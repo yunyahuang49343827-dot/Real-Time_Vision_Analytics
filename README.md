@@ -192,6 +192,22 @@ files, and the benchmark remain Git-ignored under `outputs/`. These diagnostics
 are not physical speed measurements or formal accuracy results. Review details
 are in `docs/stage11_temporal_rules_review.md`.
 
+## Run Stage 12 person–vehicle proximity
+
+Stage 12 filters Tracks by configured mixed-traffic Zone and class before
+computing minimum person-to-vehicle bbox gap. Pixel distance is divided by the
+frame diagonal, then a trigger/release hysteresis and consecutive-observation
+rule produce episode-deduplicated warnings.
+
+```bash
+python scripts/run_proximity.py
+```
+
+The bicycle/motorcycle overlap heuristic reduces likely rider/self-vehicle pairs
+but is not a rider classifier. Outputs are normalized image-space proximity
+diagnostics—not physical distance, collision probability, near-miss, or TTC.
+Review details are in `docs/stage12_proximity_review.md`.
+
 ## Project layout
 
 ```text
