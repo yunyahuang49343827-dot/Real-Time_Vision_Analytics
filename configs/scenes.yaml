@@ -5,6 +5,26 @@ defaults:
   wrong_way_minimum_net_displacement_pixels: 20.0
   temporal_maximum_missing_seconds: 1.0
 
+event_policy:
+  severity:
+    LINE_CROSSING: INFO
+    ZONE_ENTRY: INFO
+    ZONE_EXIT: INFO
+    WRONG_WAY: CRITICAL
+    LONG_DWELL: WARNING
+    STATIONARY_VEHICLE: WARNING
+    PEDESTRIAN_INTRUSION: WARNING
+    PROXIMITY_WARNING: WARNING
+  status:
+    LINE_CROSSING: DETECTED
+    ZONE_ENTRY: DETECTED
+    ZONE_EXIT: DETECTED
+    WRONG_WAY: REVIEW_REQUIRED
+    LONG_DWELL: DETECTED
+    STATIONARY_VEHICLE: REVIEW_REQUIRED
+    PEDESTRIAN_INTRUSION: REVIEW_REQUIRED
+    PROXIMITY_WARNING: REVIEW_REQUIRED
+
 scenes:
   pexels_2103099:
     lines:
@@ -27,6 +47,8 @@ scenes:
       - zone_id: highway_shoulder_stationary
         type: stationary_monitoring
         points: [[0.70, 0.32], [0.84, 0.32], [0.99, 0.98], [0.89, 0.98]]
+        restricted_for_person: true
+        pedestrian_intrusion_severity: CRITICAL
         stationary_duration_seconds: 5.0
         stationary_movement_threshold_normalized: 0.003
         stationary_applicable_classes: [car, motorcycle, bus, truck]

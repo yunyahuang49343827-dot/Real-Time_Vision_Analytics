@@ -208,6 +208,22 @@ but is not a rider classifier. Outputs are normalized image-space proximity
 diagnostics—not physical distance, collision probability, near-miss, or TTC.
 Review details are in `docs/stage12_proximity_review.md`.
 
+## Run Stage 13 unified event engine
+
+Stage 13 runs the existing spatial and temporal rule engines in one frame loop,
+then normalizes only their newly emitted records into a traceable Event schema.
+Severity and status come from `configs/scenes.yaml`; rule candidates such as
+wrong-way and proximity remain `REVIEW_REQUIRED`.
+
+```bash
+python scripts/run_event_engine.py
+```
+
+Person `ENTER` creates `PEDESTRIAN_INTRUSION` only for zones explicitly marked
+`restricted_for_person`. Event counts are system rule outputs, not verified
+incidents. Stage 13 does not capture snapshots or clips. Policy and output review
+are documented in `docs/stage13_event_engine_review.md`.
+
 ## Project layout
 
 ```text
