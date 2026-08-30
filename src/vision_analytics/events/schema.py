@@ -23,6 +23,7 @@ EVENT_FIELDS = (
     "timestamp_seconds", "track_id", "secondary_track_id", "class_name",
     "secondary_class_name", "zone_id", "line_id", "severity", "status",
     "rule_source", "rule_value", "threshold",
+    "evidence_path",
 )
 
 
@@ -45,6 +46,7 @@ class EventRecord:
     rule_source: str = ""
     rule_value: str = ""
     threshold: str = ""
+    evidence_path: str | None = None
 
     def __post_init__(self) -> None:
         if not self.event_id or not self.video_id or not self.source_id:
@@ -85,4 +87,5 @@ class EventRecord:
             "rule_source": self.rule_source,
             "rule_value": self.rule_value,
             "threshold": self.threshold,
+            "evidence_path": self.evidence_path or "",
         }

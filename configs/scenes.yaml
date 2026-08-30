@@ -25,6 +25,17 @@ event_policy:
     PEDESTRIAN_INTRUSION: REVIEW_REQUIRED
     PROXIMITY_WARNING: REVIEW_REQUIRED
 
+evidence_policy:
+  capture_event_types:
+    - WRONG_WAY
+    - LONG_DWELL
+    - STATIONARY_VEHICLE
+    - PEDESTRIAN_INTRUSION
+    - PROXIMITY_WARNING
+  capture_severities: [WARNING, CRITICAL]
+  capture_statuses: [REVIEW_REQUIRED]
+  jpeg_quality: 90
+
 scenes:
   pexels_2103099:
     lines:
