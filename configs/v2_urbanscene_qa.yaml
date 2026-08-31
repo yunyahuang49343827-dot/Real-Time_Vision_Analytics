@@ -1,0 +1,21 @@
+dataset:
+  source_id: urbanscene_v1
+  name: "UrbanScene: An Extensive Multi-Object Dataset for Pedestrian, Traffic, and Motorbike Detection"
+  doi: "10.17632/5gt4fg4rvp.1"
+  version: 1
+  source_url: "https://data.mendeley.com/datasets/5gt4fg4rvp/1"
+  owner: "Kailas PATIL and contributors"
+  organization: "Mendeley Data; Kasetsart University Sri Racha Campus"
+  license: "CC BY 4.0"
+  license_status: VERIFIED
+  raw_root: data/raw/urbanscene
+  access_date: "2026-08-31"
+qa:
+  near_duplicate_hamming_threshold: 6
+  image_extensions: [".jpg", ".jpeg", ".png"]
+governance:
+  v1_stage18_usage: OVERLAP_CHECK_ONLY
+  no_training: true
+  final_v2_holdout_created: false
+  missing_bbox_suitability: NOT_SUITABLE_FOR_YOLO_OBJECT_DETECTION
+  missing_bbox_training_decision: REJECT_FOR_SUPERVISED_YOLO_TRAINING

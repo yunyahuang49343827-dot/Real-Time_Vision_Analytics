@@ -27,3 +27,7 @@ visdrone2019_det,awning-tricycle,,excluded_from_v2_target,Unsupported source cat
 visdrone2019_det,bus,bus,identity,Raw class ID 9 is unchanged
 visdrone2019_det,motor,motorcycle,rename,Manifest-layer mapping only; raw class ID 10 remains motor
 visdrone2019_det,others,,ignored_or_other,Preserved in parsed metadata and excluded from V2 target labels
+urbanscene_v1,Pedestrians,person,image_level_semantic_only_not_bbox,Folder-level semantic only; no object instance or bbox label exists
+urbanscene_v1,Motorbikes,motorcycle,image_level_semantic_only_not_bbox,Folder-level semantic only; rider and motorcycle are not independently annotated
+urbanscene_v1,Cyclists,bicycle,ambiguous_image_level_semantic_only,Folder shows cyclist scenes but does not separate rider person from bicycle object
+urbanscene_v1,Traffic,,broad_image_level_category_unmapped,Cannot split broad Traffic folders into car bus truck or other application classes
