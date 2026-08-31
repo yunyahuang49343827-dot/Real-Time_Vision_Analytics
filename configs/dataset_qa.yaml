@@ -1,0 +1,35 @@
+dataset:
+  source_id: roboflow_hsiang_taiwan_cctv_v3
+  title: taiwan CCTV
+  owner: Hsiang
+  source_url: https://universe.roboflow.com/hsiang-idaw8/taiwan-cctv/dataset/3
+  version: 3
+  access_date: "2026-08-31"
+  expected_image_count: 1824
+  license: CC BY 4.0
+  archive_sha256: 040672837f3345d6a3d6ffeb999a4e466209db69a4ce5791fa802bb308d7a918
+  raw_root: data/raw/taiwan_cctv_v3
+  source_classes: [car, truck, bus, bicycle, motorbike, human]
+  application_mapping:
+    car: car
+    truck: truck
+    bus: bus
+    bicycle: bicycle
+    motorbike: motorcycle
+    human: person
+
+duplicate_governance:
+  phash_algorithm: dhash-64
+  near_duplicate_hamming_threshold: 6
+  note: Near-duplicate groups are a heuristic and do not prove scene identity.
+
+split_governance:
+  seed: 1601
+  ratios:
+    TRAIN: 0.70
+    VAL: 0.15
+    LOCKED_TEST: 0.15
+  locked_test_policy: Never use for training, threshold tuning, or model selection.
+
+preview:
+  images_per_class: 3

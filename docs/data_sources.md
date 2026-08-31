@@ -55,9 +55,15 @@ preprocessing, and no augmentations. It offers downloads from the version page i
 YOLO26/YOLOv11/YOLOv8/COCO JSON/Pascal VOC and other formats; using the download
 control may require a Roboflow sign-in/API key.
 
-Recorded original classes, in source order:
+The Stage 16 official YOLO26 export's `data.yaml` establishes this raw class-ID
+order (the earlier Stage 1 web page did not expose class IDs):
 
-`car`, `truck`, `bus`, `bicycle`, `motorbike`, `human`
+`bicycle`, `bus`, `car`, `human`, `motorbike`, `truck`
+
+The official v3 archive was acquired on 2026-08-31 through Roboflow's authenticated
+download flow and extracted to `data/raw/taiwan_cctv_v3`. The ZIP SHA-256 is
+`040672837f3345d6a3d6ffeb999a4e466209db69a4ce5791fa802bb308d7a918`; raw files
+remain Git-ignored and unchanged.
 
 Application taxonomy is a manifest-layer mapping only:
 
