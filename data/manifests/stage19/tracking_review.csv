@@ -1,0 +1,24 @@
+physical_object_id,scene,video_id,class_name,start_frame,end_frame,track_ids_observed,fragmentation_count,id_switch_observed,notes
+HW-01,Highway,pexels_2103099_traffic_flow_highway,truck,130,430,125,0,false,Large delivery truck retained one ID through the sampled range.
+HW-02,Highway,pexels_2103099_traffic_flow_highway,car,141,430,124,0,false,One ID with brief missed observations but no new ID.
+HW-03,Highway,pexels_2103099_traffic_flow_highway,car,130,396,70,0,false,Continuous identity; this track also produced a perspective-driven wrong-way false candidate.
+HW-04,Highway,pexels_2103099_traffic_flow_highway,car,213,430,190,0,false,Stable ID in near lane.
+HW-05,Highway,pexels_2103099_traffic_flow_highway,bus/truck,130,430,9,0,false,Same ID changed class label between bus and truck; class instability is not fragmentation.
+TP-01,Taipei,pexels_13258685_traffic_in_city,car,585,811,285,0,false,Stable ID in dense scene.
+TP-02,Taipei,pexels_13258685_traffic_in_city,person,606,799,297,0,false,Stable pedestrian ID despite nearby traffic.
+TP-03,Taipei,pexels_13258685_traffic_in_city,motorcycle,608,783,298,0,false,Scooter retained one ID through line crossing.
+TP-04,Taipei,pexels_13258685_traffic_in_city,person,562,631,279,0,false,One-frame observation gap did not create a new ID.
+TP-05,Taipei,pexels_13258685_traffic_in_city,person,592,616,294,0,false,Short visible pedestrian segment; distinct from track 279 in reviewed frames.
+TP-06,Taipei,pexels_13258685_traffic_in_city,person,5580,5695,2486,0,false,Foreground pedestrian retained one ID across the dense sample.
+TP-07,Taipei,pexels_13258685_traffic_in_city,person,5580,5595,2694|2750,1,false,Same edge pedestrian reacquired five frames later at near-identical center; fragmentation candidate.
+UR-01,Urban,pexels_37258214_urban_traffic_cars_motorcycles,car,0,123,1,0,false,Stable car track.
+UR-02,Urban,pexels_37258214_urban_traffic_cars_motorcycles,motorcycle,0,109,3,0,false,Stable motorcycle track across crossing.
+UR-03,Urban,pexels_37258214_urban_traffic_cars_motorcycles,person,7,110,12,0,false,Intermittent rider observations retained one ID.
+UR-04,Urban,pexels_37258214_urban_traffic_cars_motorcycles,bus/truck,204,420,157,0,false,Same physical commercial vehicle changed truck/bus class without identity change.
+UR-05,Urban,pexels_37258214_urban_traffic_cars_motorcycles,car,213,387,164,0,false,Stable diagonal vehicle trajectory.
+UR-06,Urban,pexels_37258214_urban_traffic_cars_motorcycles,car/truck,1349,1380,1098|1142,1,false,Same commercial vehicle reacquired after two frames; later class changed car/truck.
+AR-01,Aerial,pexels_9322363_aerial_busy_intersection,car,280,380,83,0,false,Small car retained one ID for every reviewed frame.
+AR-02,Aerial,pexels_9322363_aerial_busy_intersection,car,280,380,414,0,false,One ID with nine missing observations.
+AR-03,Aerial,pexels_9322363_aerial_busy_intersection,car,282,380,327,0,false,Forty-one missed observations but no observed replacement ID.
+AR-04,Aerial,pexels_9322363_aerial_busy_intersection,car,280,380,284,0,false,Intermittent detection retained one ID.
+AR-05,Aerial,pexels_9322363_aerial_busy_intersection,car,280,380,59,0,false,Small-object misses created gaps but not a verified ID switch.

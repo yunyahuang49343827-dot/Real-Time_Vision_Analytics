@@ -1,0 +1,22 @@
+review_id,event_id,scene,event_type,frame_index,primary_track_id,secondary_track_id,review_result,source_type,notes
+ER-001,pexels_2103099_traffic_flow_highway-EVT-000020,Highway,WRONG_WAY,167,70,,FALSE_EVENT,NATURAL,Normal perspective motion; bbox/trajectory direction briefly points RIGHT.
+ER-002,pexels_2103099_traffic_flow_highway-EVT-000029,Highway,WRONG_WAY,348,302,,FALSE_EVENT,NATURAL,Vehicle follows normal lane; lateral image movement caused candidate.
+ER-003,pexels_2103099_traffic_flow_highway-EVT-000119,Highway,WRONG_WAY,1501,1660,,FALSE_EVENT,NATURAL,Near-camera trajectory bends UP while vehicle remains normal traffic.
+ER-004,pexels_2103099_traffic_flow_highway-EVT-000043,Highway,LONG_DWELL,547,224,,USEFUL_REVIEW_CANDIDATE,NATURAL,Observed zone residence is valid but vehicle is moving slowly in normal traffic.
+ER-005,pexels_2103099_traffic_flow_highway-EVT-000050,Highway,LONG_DWELL,637,295,,USEFUL_REVIEW_CANDIDATE,NATURAL,Threshold reached in broad approach zone; not independently an incident.
+ER-006,pexels_2103099_traffic_flow_highway-EVT-000060,Highway,LONG_DWELL,749,302,,USEFUL_REVIEW_CANDIDATE,NATURAL,Long observed presence reflects perspective and slow flow.
+ER-007,pexels_9322363_aerial_busy_intersection-EVT-000013,Aerial,LONG_DWELL,172,53,,FALSE_EVENT,NATURAL,Normal moving car remains inside large aerial polygon for five seconds.
+ER-008,pexels_9322363_aerial_busy_intersection-EVT-000015,Aerial,LONG_DWELL,175,59,,AMBIGUOUS,NATURAL,Small-object gaps and broad zone make operational meaning unclear.
+ER-009,pexels_13258685_traffic_in_city-EVT-000001,Taipei,PROXIMITY_WARNING,47,1,14,FALSE_EVENT,NATURAL,Rider/person and motorcycle overlap is not a safety incident.
+ER-010,pexels_13258685_traffic_in_city-EVT-000009,Taipei,PROXIMITY_WARNING,441,13,189,USEFUL_REVIEW_CANDIDATE,NATURAL,Person and car are image-space close; real distance cannot be inferred.
+ER-011,pexels_13258685_traffic_in_city-EVT-000019,Taipei,PROXIMITY_WARNING,584,279,222,AMBIGUOUS,NATURAL,Occlusion makes person-scooter association uncertain.
+ER-012,pexels_13258685_traffic_in_city-EVT-000024,Taipei,PROXIMITY_WARNING,622,279,298,USEFUL_REVIEW_CANDIDATE,NATURAL,Visible mixed-traffic interaction is useful for review only.
+ER-013,pexels_13258685_traffic_in_city-EVT-000028,Taipei,PROXIMITY_WARNING,792,297,340,USEFUL_REVIEW_CANDIDATE,NATURAL,Image-space overlap with car warrants review but is not collision risk.
+ER-014,pexels_13258685_traffic_in_city-EVT-000041,Taipei,PROXIMITY_WARNING,1241,427,398,FALSE_EVENT,NATURAL,Likely rider/self-motorcycle association escaped simple exclusion.
+ER-015,pexels_13258685_traffic_in_city-EVT-000051,Taipei,PROXIMITY_WARNING,1355,484,514,FALSE_EVENT,NATURAL,Rider/self-vehicle overlap candidate.
+ER-016,pexels_13258685_traffic_in_city-EVT-000054,Taipei,PROXIMITY_WARNING,1360,501,470,AMBIGUOUS,NATURAL,Dense occlusion and zero bbox gap are not physical distance.
+ER-017,pexels_13258685_traffic_in_city-EVT-000056,Taipei,PROXIMITY_WARNING,1440,411,546,USEFUL_REVIEW_CANDIDATE,NATURAL,Person-car spatial relation is visible but perspective limits meaning.
+ER-018,CONTROL-WRONG-WAY-001,Controlled,WRONG_WAY,8,9001,,TRUE_EVENT,CONTROLLED_SYNTHETIC,Consecutive disallowed RIGHT movement inside configured zone triggers once.
+ER-019,CONTROL-STATIONARY-001,Controlled,STATIONARY_VEHICLE,5,9002,,TRUE_EVENT,CONTROLLED_SYNTHETIC,Low normalized displacement inside enabled zone reaches duration threshold once.
+ER-020,CONTROL-INTRUSION-001,Controlled,PEDESTRIAN_INTRUSION,2,9003,,TRUE_EVENT,CONTROLLED_SYNTHETIC,Person outside-to-inside transition in restricted zone validates positive path.
+

@@ -1,0 +1,15 @@
+reference_id,scene,video_id,line_id,frame_index,class_name,system_track_id,review_category,physical_object_id,notes
+CR-001,Highway,pexels_2103099_traffic_flow_highway,highway_main,384,car,224,CORRECT,HW-CROSS-224,Visible center crosses finite segment once.
+CR-002,Highway,pexels_2103099_traffic_flow_highway,highway_main,400,truck,9,CORRECT,HW-CROSS-009,Large commercial vehicle crossing is visually clear.
+CR-003,Taipei,pexels_13258685_traffic_in_city,taipei_center,593,person,294,CORRECT,TP-CROSS-294,Visible pedestrian crosses; separately visible from track 279.
+CR-004,Taipei,pexels_13258685_traffic_in_city,taipei_center,597,person,279,CORRECT,TP-CROSS-279,Second pedestrian crosses; not counted as duplicate after frame review.
+CR-005,Taipei,pexels_13258685_traffic_in_city,taipei_center,617,motorcycle,298,CORRECT,TP-CROSS-298,Scooter center crosses once.
+CR-006,Taipei,pexels_13258685_traffic_in_city,taipei_center,804,car,340,CORRECT,TP-CROSS-340,Car crosses in opposite direction.
+CR-007,Urban,pexels_37258214_urban_traffic_cars_motorcycles,urban_center,46,motorcycle,3,CORRECT,UR-CROSS-003,Motorcycle crosses line.
+CR-008,Urban,pexels_37258214_urban_traffic_cars_motorcycles,urban_center,46,person,18,CORRECT,UR-CROSS-018,Rider person box also crosses; separate class observation noted.
+CR-009,Urban,pexels_37258214_urban_traffic_cars_motorcycles,urban_center,47,person,12,CORRECT,UR-CROSS-012,Distinct person track crosses.
+CR-010,Urban,pexels_37258214_urban_traffic_cars_motorcycles,urban_center,92,truck,94,CORRECT,UR-CROSS-094,Commercial vehicle center crosses.
+CR-011,Urban,pexels_37258214_urban_traffic_cars_motorcycles,urban_center,125,truck,114,CORRECT,UR-CROSS-114,Commercial vehicle center crosses.
+CR-012,Aerial,pexels_9322363_aerial_busy_intersection,aerial_center,327,car,327,CORRECT,AR-CROSS-327,Small car crossing remains visible at sampled resolution.
+CR-013,Aerial,pexels_9322363_aerial_busy_intersection,aerial_center,371,car,414,CORRECT,AR-CROSS-414,Small car crosses opposite direction once.
+

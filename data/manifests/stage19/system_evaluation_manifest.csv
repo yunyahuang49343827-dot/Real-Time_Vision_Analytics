@@ -1,0 +1,8 @@
+scene,video_id,start_frame,end_frame,evaluation_purpose
+Highway,pexels_2103099_traffic_flow_highway,130,430,tracking continuity; line crossing; wrong-way false alarm
+Taipei,pexels_13258685_traffic_in_city,540,850,dense scooter/person occlusion; crossing; proximity
+Taipei,pexels_13258685_traffic_in_city,5580,5700,dense pedestrian/scooter fragmentation
+Urban,pexels_37258214_urban_traffic_cars_motorcycles,0,420,multi-class tracking and crossing
+Urban,pexels_37258214_urban_traffic_cars_motorcycles,1300,1380,large-object occlusion and class instability
+Aerial,pexels_9322363_aerial_busy_intersection,280,380,small-object miss; continuity; crossing
+

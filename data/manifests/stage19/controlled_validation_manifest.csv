@@ -1,0 +1,4 @@
+case_id,source_type,event_type,input_description,expected_result,observed_result,purpose
+CONTROL-WRONG-WAY-001,CONTROLLED_SYNTHETIC,WRONG_WAY,Three consecutive RIGHT observations inside a RIGHT-disallowed zone,one confirmed event,one confirmed event,Positive-path validation only; not a Taiwan incident.
+CONTROL-STATIONARY-001,CONTROLLED_SYNTHETIC,STATIONARY_VEHICLE,Low normalized movement sustained inside an enabled stationary zone,one confirmed event,one confirmed event,Positive-path validation only; not a Taiwan incident.
+CONTROL-INTRUSION-001,CONTROLLED_SYNTHETIC,PEDESTRIAN_INTRUSION,Person transitions outside to inside a restricted zone,one confirmed event,one confirmed event,Positive-path validation only; not a Taiwan incident.

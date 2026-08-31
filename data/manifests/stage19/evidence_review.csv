@@ -1,0 +1,14 @@
+event_id,expected_frame,expected_track_id,manual_context_review
+pexels_2103099_traffic_flow_highway-EVT-000020,167,70,Wrong-way overlay and track context visible.
+pexels_2103099_traffic_flow_highway-EVT-000029,348,302,Wrong-way overlay and track context visible.
+pexels_2103099_traffic_flow_highway-EVT-000119,1501,1660,Wrong-way overlay and track context visible.
+pexels_2103099_traffic_flow_highway-EVT-000043,547,224,Long-dwell track and zone context visible.
+pexels_2103099_traffic_flow_highway-EVT-000050,637,295,Long-dwell track and zone context visible.
+pexels_9322363_aerial_busy_intersection-EVT-000013,172,53,Aerial long-dwell track and polygon visible.
+pexels_13258685_traffic_in_city-EVT-000001,47,1,Primary and secondary proximity tracks visible.
+pexels_13258685_traffic_in_city-EVT-000009,441,13,Person-car proximity context visible.
+pexels_13258685_traffic_in_city-EVT-000019,584,279,Dense-scene proximity context visible.
+pexels_13258685_traffic_in_city-EVT-000024,622,279,Person-scooter proximity context visible.
+pexels_13258685_traffic_in_city-EVT-000028,792,297,Person-car proximity context visible.
+pexels_13258685_traffic_in_city-EVT-000041,1241,427,Rider/self-vehicle ambiguity visible.
+
