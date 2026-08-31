@@ -22,6 +22,7 @@ data/raw/**
 !data/raw/.gitkeep
 data/processed/stage17/**
 data/processed/stage18/**
+data/interim/v2_openimages_review/**
 
 # Generated artifacts
 outputs/**

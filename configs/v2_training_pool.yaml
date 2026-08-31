@@ -1,0 +1,30 @@
+version: V2-3
+seed: 2301
+openimages:
+  candidate_manifest: outputs/data_qa/v2_openimages/candidate_manifest.csv
+  annotations: outputs/data_qa/v2_openimages/pilot_annotations.csv
+  review_image_dir: data/interim/v2_openimages_review/images
+  review_manifest: outputs/data_qa/v2_training_pool/governed_review_decisions.csv
+  review_candidate_count: 650
+  approved_target_min: 400
+  approved_target_max: 500
+  license_workers: 6
+  download_workers: 8
+  immutable_metadata_sha256:
+    data/raw/openimages_v7/metadata/oidv7-class-descriptions-boxable.csv: 1839e0e7e84130ae281f7f67413768601b031581c0c42e7fc17527b8e2a99aa9
+    data/raw/openimages_v7/metadata/validation-annotations-bbox.csv: d8bbd59410af14835d7733165a7bb8a3f0213981b22dd5077b0b9f7878991ff2
+    data/raw/openimages_v7/metadata/validation-images-with-rotation.csv: ed93a0e121fe345effdfc7359b848dbc64a1ff6778c8c73563157cb500b33a17
+taiwan:
+  split_manifest: outputs/data_qa/stage16/split_manifest.csv
+  raw_root: data/raw/taiwan_cctv_v3
+  expected_raw_tree_sha256: 8440bba4d4f374c0532970a8e4dbbb0928db9fe20992646804517216f9acfa24
+  excluded_splits: [LOCKED_TEST, EXCLUDED]
+split:
+  train_fraction: 0.8
+  val_fraction: 0.2
+  near_duplicate_hamming_threshold: 6
+governance:
+  stage18_usage: OVERLAP_CHECK_ONLY
+  raw_immutable: true
+  final_v2_holdout_created: false
+  training_performed: false
