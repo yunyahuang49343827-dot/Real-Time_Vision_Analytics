@@ -1,0 +1,39 @@
+stage: 18
+split_manifest: outputs/data_qa/stage16/split_manifest.csv
+locked_test_root: data/processed/stage18/locked_test
+locked_test_yaml: data/processed/stage18/locked_test.yaml
+output_root: outputs/evaluation/stage18
+
+models:
+  pretrained: models/pretrained/yolo26n.pt
+  fine_tuned: models/finetuned/stage17/best.pt
+
+class_names:
+  0: bicycle
+  1: bus
+  2: car
+  3: person
+  4: motorcycle
+  5: truck
+
+protocol:
+  imgsz: 640
+  device: mps
+  batch: 8
+  conf: 0.001
+  iou: 0.7
+  max_det: 300
+  half: false
+  agnostic_nms: false
+  iou_thresholds: [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+
+promotion_policy:
+  minimum_overall_map50_delta: 0.02
+  minimum_overall_map50_95_delta: 0.02
+  maximum_overall_recall_regression: 0.02
+  critical_classes: [person, motorcycle, car]
+  maximum_critical_map50_95_regression: 0.02
+  maximum_critical_recall_regression: 0.05
+  reject_overall_map50_95_regression: 0.02
+  reject_critical_map50_95_regression: 0.05
+  reject_person_recall_regression: 0.10

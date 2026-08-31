@@ -21,6 +21,7 @@ htmlcov/
 data/raw/**
 !data/raw/.gitkeep
 data/processed/stage17/**
+data/processed/stage18/**
 
 # Generated artifacts
 outputs/**
