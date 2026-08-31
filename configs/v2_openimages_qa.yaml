@@ -1,0 +1,34 @@
+dataset:
+  source_id: openimages_v7_validation_targeted
+  name: Open Images V7
+  version: V7
+  candidate_source_split: validation
+  source_url: https://storage.googleapis.com/openimages/web/download_v7.html
+  annotation_license: CC BY 4.0
+  image_license_expected: CC BY 2.0
+  access_date: "2026-08-31"
+  raw_root: data/raw/openimages_v7
+metadata:
+  class_descriptions: data/raw/openimages_v7/metadata/oidv7-class-descriptions-boxable.csv
+  class_descriptions_url: https://storage.googleapis.com/openimages/v7/oidv7-class-descriptions-boxable.csv
+  bounding_boxes: data/raw/openimages_v7/metadata/validation-annotations-bbox.csv
+  bounding_boxes_url: https://storage.googleapis.com/openimages/v5/validation-annotations-bbox.csv
+  image_metadata: data/raw/openimages_v7/metadata/validation-images-with-rotation.csv
+  image_metadata_url: https://storage.googleapis.com/openimages/2018_04/validation/validation-images-with-rotation.csv
+pilot:
+  size: 300
+  seed: 2203
+  download_workers: 8
+  review_sample_size: 50
+  manual_review_manifest: data/manifests/openimages_pilot_review.csv
+qa:
+  exclude_depiction: true
+  exclude_group_of: true
+  retain_occluded: true
+  retain_truncated: true
+  near_duplicate_hamming_threshold: 6
+governance:
+  candidate_scope: validation_dense_annotations_only
+  no_training: true
+  final_v2_holdout_created: false
+  stage18_usage: OVERLAP_CHECK_ONLY

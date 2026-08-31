@@ -1,0 +1,51 @@
+image_id,domain_relevance,annotation_review,notes
+e6aefacfb3386784,TRAFFIC_RELEVANT,ACCEPTABLE,Street food truck with multiple small and occluded people.
+7e19197da3818c53,TRAFFIC_RELEVANT,ACCEPTABLE,Public-road buses motorcycle and dense pedestrians.
+d4e085e2c1f5304c,PARTIALLY_RELEVANT,ACCEPTABLE,Parked scooters and bicycles; useful rider-adjacent context but weak road activity.
+ce696a0b196b8e36,NON_TRAFFIC,ACCEPTABLE,Fallen bicycle or staged recreation scene rather than traffic operation.
+c4e8395425f49d05,NON_TRAFFIC,ACCEPTABLE,Mountain cycling recreation.
+3145aa24c245d02c,NON_TRAFFIC,ACCEPTABLE,Indoor or track cycling race.
+255bfaef93b509cf,PARTIALLY_RELEVANT,ACCEPTABLE,Emergency truck portrait with very limited operational traffic context.
+c001dcbe47cd2276,TRAFFIC_RELEVANT,ACCEPTABLE,Street bicycle and pedestrians with small occluded people.
+706f5e98438a2a4a,PARTIALLY_RELEVANT,ACCEPTABLE,Static emergency truck; person context is limited.
+020feca9b536f1fe,TRAFFIC_RELEVANT,ACCEPTABLE,Urban cyclist and roadside vehicles.
+9e98e64ded3c0518,NON_TRAFFIC,AMBIGUOUS,Static ice-cream van; person instances are tiny and hard to verify at review scale.
+c69f2321e250dded,NON_TRAFFIC,ACCEPTABLE,Monster-truck portrait outside ordinary road traffic.
+ef00a76ca0820e42,NON_TRAFFIC,ACCEPTABLE,Close recreational bicycle scene with no road context.
+5a3f94aa35766f31,TRAFFIC_RELEVANT,ACCEPTABLE,Scooter rider and cars on a public road.
+30bb036c85129c7d,PARTIALLY_RELEVANT,ACCEPTABLE,Outdoor cyclist; some road relevance but mainly recreation.
+268e8e5bccbffc4b,NON_TRAFFIC,ACCEPTABLE,Amusement bumper-car scene.
+01f8886b50a031a1,NON_TRAFFIC,ACCEPTABLE,Official vehicle portrait rather than traffic interaction.
+63e0b56d578a62e1,NON_TRAFFIC,ACCEPTABLE,Bicycle practice court.
+be535a03639b46d3,PARTIALLY_RELEVANT,AMBIGUOUS,Airport ground vehicles and small workers; limited public-road relevance.
+e5fc43585e2a501d,TRAFFIC_RELEVANT,ACCEPTABLE,Street bicycle and distant pedestrians.
+7df7f347bb9f4dfa,PARTIALLY_RELEVANT,ACCEPTABLE,Parked expedition vehicle with nearby road users.
+10481895508872f1,NON_TRAFFIC,ACCEPTABLE,Bicycle stunt scene.
+7dfb655c98dbabb8,NON_TRAFFIC,ACCEPTABLE,Monster-truck display or show context.
+f5cd12a4f38f3079,NON_TRAFFIC,ACCEPTABLE,Motorcycle racing rather than urban traffic.
+79445a6e49ee53b9,TRAFFIC_RELEVANT,ACCEPTABLE,Tram intersection with cars and pedestrians.
+4a23eee283f294b6,TRAFFIC_RELEVANT,ACCEPTABLE,Public bus and cars on an urban road.
+e35fe0f23cf13088,NON_TRAFFIC,ACCEPTABLE,Classic car portrait.
+3b762b13ed78022d,PARTIALLY_RELEVANT,ISSUE,Street parade; many visible people are not represented as individual eligible boxes.
+e73a7d4187158151,NON_TRAFFIC,ACCEPTABLE,Motorcycle racing.
+7f8ef92c55a63b32,PARTIALLY_RELEVANT,ACCEPTABLE,Historical street scene; domain is road-adjacent but visually atypical.
+ce9b4e6f163798d9,NON_TRAFFIC,ACCEPTABLE,Static vintage truck display.
+27b6e610e2ebd15a,NON_TRAFFIC,ACCEPTABLE,Construction or vehicle-show context.
+971e35742b9196e4,TRAFFIC_RELEVANT,ACCEPTABLE,Urban double-decker bus with small pedestrians.
+8f939cbb01f114d1,NON_TRAFFIC,ACCEPTABLE,Bicycle stunt event.
+5df386da132b567b,NON_TRAFFIC,ACCEPTABLE,Recreational cyclists standing with bicycles.
+ec3714fc553cad25,PARTIALLY_RELEVANT,ACCEPTABLE,Decorated truck on street; atypical vehicle appearance.
+67c9dd8871b245ae,TRAFFIC_RELEVANT,ACCEPTABLE,Scooters and riders on an urban road.
+02717d30304f4849,PARTIALLY_RELEVANT,ACCEPTABLE,Static bus side view with limited person interaction.
+c2866d8ee7d1b7bb,NON_TRAFFIC,ACCEPTABLE,Custom motorcycle exhibition.
+fc9e682941f05f56,NON_TRAFFIC,ACCEPTABLE,Cycling race.
+d0c51cceae14b069,TRAFFIC_RELEVANT,ACCEPTABLE,Urban bus street with pedestrians and cars.
+4aa6f8e23bbaf89c,TRAFFIC_RELEVANT,ACCEPTABLE,Public-road bus and pedestrians.
+17a7865feb7f7463,PARTIALLY_RELEVANT,ACCEPTABLE,Static fire truck with nearby cars and occupants.
+00e9084d1bc8e0ea,NON_TRAFFIC,ACCEPTABLE,Indoor bicycle trainer scene.
+24a921303b6a05ef,NON_TRAFFIC,ACCEPTABLE,Mountain bicycle recreation with partial occlusion.
+0d21f579a27f72a9,PARTIALLY_RELEVANT,ACCEPTABLE,Promotional truck with people; weak operational traffic relevance.
+3f7d5b7ffa990565,PARTIALLY_RELEVANT,ACCEPTABLE,Parked public bus with people; useful but little motion context.
+d5a1e51d937f330f,NON_TRAFFIC,ACCEPTABLE,Motorcycle stunt.
+0386a1c1ca5b2da7,PARTIALLY_RELEVANT,ISSUE,Dense market street with motorcycles; visible people appear incompletely annotated.
+e405d12592180241,PARTIALLY_RELEVANT,ACCEPTABLE,Static military truck with one person; limited ordinary traffic relevance.
