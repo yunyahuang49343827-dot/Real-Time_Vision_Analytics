@@ -15,3 +15,15 @@ fe_detrac_2026_b1,Bike,,ambiguous_unmapped,Source documentation does not establi
 fe_detrac_2026_b1,Car,car,case_normalization,Manifest-layer mapping only; raw label remains Car
 fe_detrac_2026_b1,Bus,bus,case_normalization,Manifest-layer mapping only; raw label remains Bus
 fe_detrac_2026_b1,Truck,truck,case_normalization,Manifest-layer mapping only; raw label remains Truck
+visdrone2019_det,ignored_regions,,ignored_region,Preserved in parsed metadata and excluded from V2 target labels
+visdrone2019_det,pedestrian,person,rename,Manifest-layer mapping only; raw class ID 1 remains pedestrian
+visdrone2019_det,people,person,rename,Manifest-layer mapping only; raw class ID 2 remains people
+visdrone2019_det,bicycle,bicycle,identity,Raw class ID 3 is unchanged
+visdrone2019_det,car,car,identity,Raw class ID 4 is unchanged
+visdrone2019_det,van,,excluded_from_v2_target,Unsupported ambiguous source category; raw class ID 5 retained
+visdrone2019_det,truck,truck,identity,Raw class ID 6 is unchanged
+visdrone2019_det,tricycle,,excluded_from_v2_target,Unsupported source category; raw class ID 7 retained
+visdrone2019_det,awning-tricycle,,excluded_from_v2_target,Unsupported source category; raw class ID 8 retained
+visdrone2019_det,bus,bus,identity,Raw class ID 9 is unchanged
+visdrone2019_det,motor,motorcycle,rename,Manifest-layer mapping only; raw class ID 10 remains motor
+visdrone2019_det,others,,ignored_or_other,Preserved in parsed metadata and excluded from V2 target labels

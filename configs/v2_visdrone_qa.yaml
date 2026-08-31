@@ -1,0 +1,46 @@
+dataset:
+  name: VisDrone2019-DET
+  version: "2019"
+  owner: AISKYEYE team, Lab of Machine Learning and Data Mining, Tianjin University
+  source_url: https://github.com/VisDrone/VisDrone-Dataset
+  access_date: "2026-08-31"
+  license: NOT_EXPLICITLY_STATED
+  license_status: REQUIRES_REVIEW
+  intended_use_status: QUARANTINED_PENDING_LICENSE_REVIEW
+  raw_root: data/raw/visdrone2019_det
+  partitions: [train, val, test-dev]
+  test_challenge_excluded_reason: annotations unavailable
+
+qa:
+  near_duplicate_hamming_threshold: 6
+  size_bins:
+    small: area_normalized < 0.01
+    medium: 0.01 <= area_normalized < 0.09
+    large: area_normalized >= 0.09
+  filename_prefix_grouping:
+    enabled: true
+    method: INFERRED_NOT_OFFICIAL
+    warning: Official VisDrone sources do not document DET filename prefixes as sequence IDs.
+  parsed_representation: outputs/data_qa/v2_visdrone/parsed_annotations.csv
+  raw_annotations_mutable: false
+
+mapping:
+  pedestrian: {application_class: person, disposition: MAPPED}
+  people: {application_class: person, disposition: MAPPED}
+  bicycle: {application_class: bicycle, disposition: MAPPED}
+  car: {application_class: car, disposition: MAPPED}
+  van: {application_class: null, disposition: EXCLUDED_FROM_V2_TARGET}
+  truck: {application_class: truck, disposition: MAPPED}
+  tricycle: {application_class: null, disposition: EXCLUDED_FROM_V2_TARGET}
+  awning-tricycle: {application_class: null, disposition: EXCLUDED_FROM_V2_TARGET}
+  bus: {application_class: bus, disposition: MAPPED}
+  motor: {application_class: motorcycle, disposition: MAPPED}
+  ignored_regions: {application_class: null, disposition: IGNORED_OR_OTHER}
+  others: {application_class: null, disposition: IGNORED_OR_OTHER}
+
+governance:
+  create_final_v2_holdout: false
+  stage18_locked_test_usage: OVERLAP_CHECK_ONLY
+  stage18_locked_test_model_selection_use: false
+  acceptance_if_qa_passes: ACCEPT_WITH_WARNINGS
+  acceptance_warning: Dataset training eligibility remains blocked until license/usage terms are reviewed.
