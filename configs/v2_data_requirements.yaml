@@ -1,0 +1,163 @@
+version: "V2-1"
+status: PLAN_ONLY
+created_from_existing_artifacts_only: true
+prohibited_actions:
+  download_data: true
+  relabel_v1_raw: true
+  train_model: true
+  tune_on_v1_stage18_locked_test: true
+  modify_v1_artifacts: true
+
+evidence_baseline:
+  stage16:
+    qa_summary: outputs/data_qa/stage16/qa_summary.json
+    class_distribution: outputs/data_qa/stage16/class_distribution.csv
+    split_class_distribution: outputs/data_qa/stage16/split_class_distribution.csv
+  stage17:
+    training_summary: outputs/training/stage17/training_summary.json
+  stage18:
+    status: SEALED_DIAGNOSTIC_REFERENCE_ONLY
+    overall_metrics: outputs/evaluation/stage18/overall_metrics.csv
+    per_class_metrics: outputs/evaluation/stage18/per_class_metrics.csv
+    diagnostic_miss_analysis: outputs/evaluation/stage18/diagnostic_miss_analysis.csv
+    promotion_decision: outputs/evaluation/stage18/promotion_decision.json
+    prohibited_uses:
+      - threshold_selection
+      - model_selection
+      - epoch_selection
+      - augmentation_selection
+      - retraining_feedback_loop
+  stage19:
+    system_metrics: outputs/evaluation/stage19/system_metrics.json
+    error_propagation: outputs/evaluation/stage19/error_propagation_summary.md
+
+taxonomy:
+  preserve_source_taxonomy: true
+  preserve_application_mapping_separately: true
+  application_classes:
+    - bicycle
+    - bus
+    - car
+    - person
+    - motorcycle
+    - truck
+  proposed_annotation_policy:
+    person:
+      definition: Visible human body with a separately localizable person extent.
+      include: [pedestrian, standing_person, seated_person, rider_when_person_extent_is_separately_visible]
+      exclude: [poster_or_reflection, fully_invisible_person]
+      attributes_to_record_if_supported: [pedestrian, rider, occluded, truncated, small]
+    pedestrian:
+      definition: A person role/attribute for walking, standing, or crossing; not a replacement detection class.
+      application_class: person
+    rider:
+      definition: A person riding or seated on a bicycle or motorcycle; annotate person separately when the visible extent meets the person policy.
+      application_class: person
+      paired_vehicle_annotation_required_when_visible: true
+    motorcycle:
+      definition: The vehicle extent, excluding the rider where separable; scooters map here.
+    bicycle:
+      definition: Pedal/electric bicycle vehicle extent; rider is a separate person annotation when visible.
+    commercial_vehicle:
+      car: Passenger car, SUV, taxi, and passenger van unless source policy explicitly defines another class.
+      bus: Passenger-carrying bus/minibus under a documented source rule.
+      truck: Freight-oriented truck, pickup, or goods van under a documented source rule.
+      commercial_van: Retain source label and add ambiguity/review metadata when the car/bus/truck rule cannot be applied reliably.
+
+acquisition_specification:
+  geography_priority: [Taiwan, similar_right_hand_traffic_urban_context]
+  annotation_type: object_detection_bbox
+  required_scene_coverage:
+    - crosswalk
+    - pedestrian_heavy_intersection
+    - pedestrian_scooter_interaction
+    - distant_small_person
+    - partial_occlusion
+    - dense_traffic
+    - multiple_viewing_angles
+    - day_and_varied_lighting
+  required_object_coverage:
+    - person_without_vehicle
+    - pedestrian_crossing
+    - motorcycle_rider_pair
+    - bicycle_rider_pair
+    - small_person
+    - small_motorcycle
+    - small_car
+    - bus_truck_commercial_van_boundaries
+  selection_principle: Coverage across scenes, sizes, occlusion, roles, and camera groups takes priority over raw image count.
+
+acceptance_criteria:
+  provenance:
+    source_url_required: true
+    source_owner_required: true
+    version_required: true
+    acquisition_date_required: true
+    immutable_archive_hash_required: true
+  license:
+    explicit_license_required: true
+    intended_use_compatibility_review_required: true
+    unresolved_or_conflicting_license: REJECT_OR_QUARANTINE
+  annotations:
+    bbox_format_valid: true
+    class_mapping_documented: true
+    raw_labels_immutable: true
+    person_completeness_audit_required: true
+    rider_vehicle_pair_audit_required: true
+    commercial_vehicle_ambiguity_log_required: true
+    empty_label_semantics_documented: true
+  image_quality:
+    readable_required: true
+    resolution_recorded: true
+    corrupted_files: EXCLUDE_WITH_REASON
+  grouping_and_leakage:
+    exact_duplicate_grouping: SHA256
+    near_duplicate_grouping_required: true
+    camera_or_sequence_grouping_preferred: true
+    group_cross_split_allowed: false
+    v1_stage18_locked_test_overlap_allowed: false
+  coverage_gate:
+    coverage_matrix_required: true
+    every_required_scene_tag_must_be_represented: true
+    every_required_object_tag_must_be_represented: true
+    person_size_and_occlusion_distribution_report_required: true
+    acceptance_not_based_on_image_count_alone: true
+
+experiments:
+  fixed_order:
+    - priority: 1
+      name: data_expansion_and_label_policy_refinement
+      action: Build governed V2 Train/Val and freeze annotation policy.
+    - priority: 2
+      name: yolo26n_imgsz640_baseline_retraining
+      model: yolo26n.pt
+      imgsz: 640
+    - priority: 3
+      name: yolo26n_imgsz960_comparison
+      model: yolo26n.pt
+      imgsz: 960
+      hypothesis: More input pixels may help small objects; improvement is not assumed.
+    - priority: 4
+      name: yolo26s_comparison_if_needed
+      model: yolo26s.pt
+      condition: Only if governed data expansion and the 640/960 YOLO26n experiments remain insufficient.
+    - priority: 5
+      name: new_v2_holdout_final_evaluation
+      condition: Only after V2 model selection and all promotion gates are frozen.
+      selection_role: FINAL_EVALUATION_ONLY
+  model_selection_data: [V2_TRAIN, V2_VAL]
+  forbidden_model_selection_data: [V1_STAGE18_LOCKED_TEST, V2_HOLDOUT]
+  controlled_variables_required: true
+  per_class_gates_required: [person, bicycle, motorcycle, car]
+  downstream_system_regression_review_required: true
+
+v2_holdout_governance:
+  status_before_final_evaluation: SEALED
+  created_after: [data_acquisition_freeze, duplicate_grouping, annotation_policy_freeze]
+  source: independent_group_aware_partition
+  must_not_overlap: [V2_TRAIN, V2_VAL, V1_STAGE18_LOCKED_TEST]
+  allowed_uses: [single_final_evaluation, promotion_decision, diagnostic_explanation_after_decision]
+  prohibited_uses: [training, threshold_tuning, model_selection, experiment_selection, augmentation_selection]
+  required_manifest_fields: [image_id, source_id, group_id, sha256, annotation_sha256, split]
+  seal_requirements: [manifest_sha256, image_id_list, dataset_tree_sha256, access_log]
+  post_unseal_rule: Results may be explained but must not be fed back into V2 tuning; another future holdout is required after changes.
