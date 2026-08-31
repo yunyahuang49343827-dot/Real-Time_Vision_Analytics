@@ -36,6 +36,22 @@ evidence_policy:
   capture_statuses: [REVIEW_REQUIRED]
   jpeg_quality: 90
 
+traffic_analytics:
+  time_bucket_seconds: 10
+  density_thresholds:
+    pexels_2103099:
+      low_max_occupancy: 4
+      medium_max_occupancy: 9
+    pexels_13258685:
+      low_max_occupancy: 4
+      medium_max_occupancy: 9
+    pexels_37258214:
+      low_max_occupancy: 3
+      medium_max_occupancy: 7
+    pexels_9322363:
+      low_max_occupancy: 4
+      medium_max_occupancy: 9
+
 scenes:
   pexels_2103099:
     lines:
