@@ -1,0 +1,32 @@
+stage: 17
+base_model: models/pretrained/yolo26n.pt
+split_manifest: outputs/data_qa/stage16/split_manifest.csv
+processed_root: data/processed/stage17/taiwan_cctv
+data_yaml: data/processed/stage17/taiwan_cctv.yaml
+output_root: outputs/training/stage17
+finetuned_root: models/finetuned/stage17
+
+expected_counts:
+  TRAIN: 1266
+  VAL: 271
+  LOCKED_TEST_USED: 0
+  EXCLUDED_USED: 0
+
+class_names:
+  0: bicycle
+  1: bus
+  2: car
+  3: person
+  4: motorcycle
+  5: truck
+
+training:
+  imgsz: 640
+  epochs: 50
+  patience: 10
+  batch: 8
+  device: mps
+  seed: 1601
+  workers: 4
+  deterministic: true
+  cache: false

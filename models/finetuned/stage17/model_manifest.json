@@ -1,0 +1,35 @@
+{
+  "base_model": "models/pretrained/yolo26n.pt",
+  "base_model_sha256": "9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef",
+  "batch": 8,
+  "best_epoch": 50,
+  "best_validation_metrics": {
+    "map50": 0.6508872174979693,
+    "map50_95": 0.3683496409995199,
+    "precision": 0.8287314360711178,
+    "recall": 0.5525710904758897
+  },
+  "best_weights_path": "models/finetuned/stage17/best.pt",
+  "best_weights_sha256": "02d7067a97171ec7cc6b790fbe2b1c17f7c620cd7493d63b2d0955e6cd639c0d",
+  "class_names": {
+    "0": "bicycle",
+    "1": "bus",
+    "2": "car",
+    "3": "person",
+    "4": "motorcycle",
+    "5": "truck"
+  },
+  "dataset_split_manifest_sha256": "3a6c91aabf50c6500f1755e38143c60d3c41a9c00b8448a6bcde678778688b97",
+  "device": "mps",
+  "epochs_completed": 50,
+  "epochs_requested": 50,
+  "excluded_used": 0,
+  "imgsz": 640,
+  "last_weights_path": "models/finetuned/stage17/last.pt",
+  "last_weights_sha256": "3ffd571c64aed0346c2b42deaef1b3267c8c6c8e568b69dfcff42ae07f0c32df",
+  "locked_test_used": 0,
+  "model_status": "CANDIDATE",
+  "seed": 1601,
+  "train_count": 1266,
+  "val_count": 271
+}

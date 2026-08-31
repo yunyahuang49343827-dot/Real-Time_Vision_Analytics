@@ -20,6 +20,7 @@ htmlcov/
 # Raw/local datasets
 data/raw/**
 !data/raw/.gitkeep
+data/processed/stage17/**
 
 # Generated artifacts
 outputs/**
@@ -33,4 +34,3 @@ outputs/**
 *.pt
 *.pth
 *.onnx
-
