@@ -1,0 +1,34 @@
+stage: stage21_1a
+runtime_model: models/pretrained/yolo26n.pt
+runtime_model_sha256: 9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef
+rejected_model: models/finetuned/stage17/best.pt
+input_video: data/raw/videos/pexels_9322363_aerial_busy_intersection.mp4
+input_video_sha256: 7506c1997481f4df107e4c4f17b8bb5eccbd706f077f54980fa2ac8a73a57c07
+video_id: pexels_9322363_aerial_busy_intersection
+source_id: pexels_9322363
+output_directory: outputs/evaluation/stage21_1a
+device: mps
+tracker: bytetrack.yaml
+scene_config: configs/scenes.yaml
+frame_range:
+  start: 280
+  end: 459
+comparison_relative_seconds: [1.0, 3.0, 5.0]
+small_bbox_area_threshold: 0.01
+low_confidence_band: [0.15, 0.25]
+trajectory:
+  max_history_length: 30
+  minimum_displacement_pixels: 5.0
+experiments:
+  - name: baseline_640_025
+    imgsz: 640
+    conf: 0.25
+  - name: lowconf_640_015
+    imgsz: 640
+    conf: 0.15
+  - name: highres_960_025
+    imgsz: 960
+    conf: 0.25
+  - name: highres_lowconf_960_015
+    imgsz: 960
+    conf: 0.15
