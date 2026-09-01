@@ -13,12 +13,13 @@ from uuid import uuid4
 
 from vision_analytics.api.schemas import JobStatus
 
-ProgressCallback = Callable[[float], None]
+ProgressCallback = Callable[[float, int | None, int | None], None]
 
 
 class PipelineRunner(Protocol):
     def run(self, input_path: Path, output_directory: Path, job_id: str,
-            progress_callback: ProgressCallback) -> dict[str, object]: ...
+            progress_callback: ProgressCallback, *, analysis_mode: str = "standard",
+            source_id: str | None = None) -> dict[str, object]: ...
 
 
 @dataclass(slots=True)
@@ -33,6 +34,10 @@ class JobRecord:
     progress: float
     error_code: str | None
     error_message: str | None
+    analysis_mode: str
+    source_id: str
+    processed_frames: int
+    total_frames: int | None
 
     def to_dict(self) -> dict[str, object]:
         payload = asdict(self)
@@ -61,7 +66,8 @@ class JobManager:
     def new_job_id() -> str:
         return str(uuid4())
 
-    def create(self, job_id: str, input_path: Path) -> JobRecord:
+    def create(self, job_id: str, input_path: Path, *, analysis_mode: str = "standard",
+               source_id: str = "unknown") -> JobRecord:
         output = (self.job_root / job_id).resolve()
         if not output.is_relative_to(self.job_root) or output == self.job_root:
             raise ValueError("invalid job_id path")
@@ -73,6 +79,8 @@ class JobManager:
                 job_id=job_id, status=JobStatus.CREATED, created_at=_now(), started_at=None,
                 completed_at=None, input_video_path=str(Path(input_path).resolve()),
                 output_directory=str(output), progress=0.0, error_code=None, error_message=None,
+                analysis_mode=analysis_mode, source_id=source_id,
+                processed_frames=0, total_frames=None,
             )
             self._jobs[job_id] = record
             self._persist(record)
@@ -107,7 +115,8 @@ class JobManager:
             self._persist(record)
             return record
 
-    def _progress(self, job_id: str, value: float) -> None:
+    def _progress(self, job_id: str, value: float, processed_frames: int | None = None,
+                  total_frames: int | None = None) -> None:
         value = min(0.999, max(0.0, float(value)))
         with self._lock:
             record = self.get(job_id)
@@ -116,6 +125,10 @@ class JobManager:
             if value - record.progress < 0.01 and value < 0.99:
                 return
             record.progress = value
+            if processed_frames is not None:
+                record.processed_frames = max(record.processed_frames, int(processed_frames))
+            if total_frames is not None:
+                record.total_frames = int(total_frames)
             self._persist(record)
 
     def _run(self, job_id: str) -> None:
@@ -123,10 +136,15 @@ class JobManager:
             record = self.transition(job_id, JobStatus.PROCESSING)
             result = self.runner.run(
                 Path(record.input_video_path), Path(record.output_directory), job_id,
-                lambda value: self._progress(job_id, value),
+                lambda value, processed=None, total=None: self._progress(
+                    job_id, value, processed, total,
+                ),
+                analysis_mode=record.analysis_mode, source_id=record.source_id,
             )
             result_path = Path(record.output_directory) / "result.json"
             result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            if record.total_frames is not None:
+                record.processed_frames = record.total_frames
             self.transition(job_id, JobStatus.COMPLETED)
         except Exception as exc:  # job boundary: contain all pipeline failures
             with self._lock:

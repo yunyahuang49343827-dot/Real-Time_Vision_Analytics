@@ -9,8 +9,9 @@ import shutil
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
 from vision_analytics.api.config import APPROVED_RUNTIME_MODEL, ApiConfig, load_api_config
@@ -23,6 +24,7 @@ from vision_analytics.api.schemas import (
     JobResultResponse,
     JobStatus,
     JobStatusResponse,
+    AnalysisMode,
 )
 from vision_analytics.services.jobs import JobManager, PipelineRunner
 from vision_analytics.services.pipeline import ExistingAnalyticsPipeline
@@ -47,6 +49,9 @@ def _status_response(record: object) -> JobStatusResponse:
         job_id=record.job_id, status=record.status, progress=record.progress,
         created_at=record.created_at, started_at=record.started_at,
         completed_at=record.completed_at, error=error,
+        analysis_mode=record.analysis_mode,
+        processed_frames=record.processed_frames,
+        total_frames=record.total_frames,
     )
 
 
@@ -97,6 +102,13 @@ def create_app(*, config: ApiConfig | None = None, runner: PipelineRunner | None
     )
     application.state.job_manager = manager
     application.state.api_config = active_config
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(active_config.cors_origins),
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type"],
+    )
 
     @application.exception_handler(ApiError)
     async def api_error_handler(_: Request, exc: ApiError) -> JSONResponse:
@@ -121,7 +133,10 @@ def create_app(*, config: ApiConfig | None = None, runner: PipelineRunner | None
         "/jobs", response_model=JobCreateResponse, status_code=202,
         responses={400: {"model": ErrorResponse}, 413: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
     )
-    async def create_job(video: UploadFile = File(...)) -> JobCreateResponse:
+    async def create_job(
+        video: UploadFile = File(...),
+        analysis_mode: AnalysisMode = Form(AnalysisMode.STANDARD),
+    ) -> JobCreateResponse:
         original = Path(video.filename or "").name
         suffix = Path(original).suffix.lower()
         if suffix not in active_config.supported_extensions:
@@ -135,11 +150,14 @@ def create_app(*, config: ApiConfig | None = None, runner: PipelineRunner | None
             size = await _save_upload(video, staged_file, active_config.max_upload_size_bytes)
             if size == 0:
                 raise ApiError(400, "EMPTY_UPLOAD", "Uploaded video is empty")
-            metadata = profile_video(staged_file, video_id=job_id, source_id=active_config.default_scene_source_id)
+            source_id = active_config.source_for_analysis_mode(analysis_mode.value)
+            metadata = profile_video(staged_file, video_id=job_id, source_id=source_id)
             if metadata["validation_status"] == "FAIL":
                 raise ApiError(400, "INVALID_VIDEO", "OpenCV could not validate the uploaded video")
             destination = active_config.job_output_directory / job_id / "input" / f"input{suffix}"
-            record = manager.create(job_id, destination)
+            record = manager.create(
+                job_id, destination, analysis_mode=analysis_mode.value, source_id=source_id,
+            )
             destination.parent.mkdir(parents=True, exist_ok=True)
             staged_file.replace(destination)
             shutil.rmtree(staging)

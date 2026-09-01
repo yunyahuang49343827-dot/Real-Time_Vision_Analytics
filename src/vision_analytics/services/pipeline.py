@@ -38,7 +38,7 @@ from vision_analytics.video.pipeline import add_overlay, process_video
 from vision_analytics.services.video_delivery import transcode_browser_video
 from vision_analytics.services.visualization import SupervisionVisualizer, VisualizationSettings
 
-ProgressCallback = Callable[[float], None]
+ProgressCallback = Callable[[float, int | None, int | None], None]
 
 
 def _write_csv(path: Path, fieldnames: tuple[str, ...], rows: list[dict[str, object]]) -> None:
@@ -59,9 +59,10 @@ class ExistingAnalyticsPipeline:
         self.config = config
 
     def run(self, input_path: Path, output_directory: Path, job_id: str,
-            progress_callback: ProgressCallback) -> dict[str, object]:
+            progress_callback: ProgressCallback, *, analysis_mode: str = "standard",
+            source_id: str | None = None) -> dict[str, object]:
         output_directory.mkdir(parents=True, exist_ok=True)
-        source_id = self.config.default_scene_source_id
+        source_id = source_id or self.config.source_for_analysis_mode(analysis_mode)
         metadata = profile_video(input_path, video_id=job_id, source_id=source_id)
         if metadata["validation_status"] == "FAIL":
             raise ValueError(f"input validation failed: {metadata['validation_message']}")
@@ -154,7 +155,9 @@ class ExistingAnalyticsPipeline:
             benchmark = process_video(
                 input_path, tracking_raw_video, video_id=job_id, source_id=source_id,
                 frame_processor=update,
-                progress_callback=lambda done, total: progress_callback(done / total if total else 0.0),
+                progress_callback=lambda done, total: progress_callback(
+                    done / total if total else 0.0, done, total,
+                ),
             )
         finally:
             heatmap_writer.release()
@@ -284,12 +287,15 @@ class OpenCVPipelineSmokeRunner:
     """Small injectable integration runner exercising the existing video pipeline."""
 
     def run(self, input_path: Path, output_directory: Path, job_id: str,
-            progress_callback: ProgressCallback) -> dict[str, object]:
+            progress_callback: ProgressCallback, *, analysis_mode: str = "standard",
+            source_id: str | None = None) -> dict[str, object]:
         metadata = profile_video(input_path, video_id=job_id, source_id="smoke")
         output = output_directory / "tracking_raw.mp4"
         benchmark = process_video(
             input_path, output, video_id=job_id, source_id="smoke",
-            progress_callback=lambda done, total: progress_callback(done / total if total else 0.0),
+            progress_callback=lambda done, total: progress_callback(
+                done / total if total else 0.0, done, total,
+            ),
         )
         if benchmark["status"] == "FAIL":
             raise RuntimeError(str(benchmark["validation_message"]))

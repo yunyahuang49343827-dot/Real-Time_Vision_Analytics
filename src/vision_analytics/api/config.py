@@ -40,6 +40,8 @@ class ApiConfig:
     runtime_profiles: Mapping[str, RuntimeProfile] = field(default_factory=dict)
     scene_runtime_profiles: Mapping[str, str] = field(default_factory=dict)
     heatmap_classes: frozenset[str] = frozenset({"car", "motorcycle", "bus", "truck"})
+    analysis_mode_sources: Mapping[str, str] = field(default_factory=dict)
+    cors_origins: tuple[str, ...] = ("http://localhost:5173", "http://127.0.0.1:5173")
 
     def __post_init__(self) -> None:
         root = self.project_root.resolve()
@@ -58,10 +60,19 @@ class ApiConfig:
             raise ValueError("invalid runtime inference configuration")
         if any(name not in self.runtime_profiles for name in self.scene_runtime_profiles.values()):
             raise ValueError("scene references an unknown runtime profile")
+        if not self.cors_origins:
+            raise ValueError("at least one CORS origin is required")
 
     def runtime_profile_for(self, source_id: str) -> RuntimeProfile:
         name = self.scene_runtime_profiles.get(source_id, "standard")
         return self.runtime_profiles.get(name, RuntimeProfile(self.imgsz, self.confidence_threshold))
+
+    def source_for_analysis_mode(self, analysis_mode: str) -> str:
+        if analysis_mode == "standard":
+            return self.analysis_mode_sources.get("standard", self.default_scene_source_id)
+        if analysis_mode == "aerial":
+            return self.analysis_mode_sources.get("aerial", "pexels_9322363")
+        raise ValueError("unsupported analysis mode")
 
 
 def _inside(root: Path, value: object) -> Path:
@@ -110,5 +121,12 @@ def load_api_config(path: Path, *, project_root: Path | None = None) -> ApiConfi
         },
         heatmap_classes=frozenset(str(value) for value in heatmap.get(
             "classes", ["car", "motorcycle", "bus", "truck"],
+        )),
+        analysis_mode_sources={
+            str(mode): str(source)
+            for mode, source in payload.get("analysis_mode_sources", {}).items()
+        },
+        cors_origins=tuple(str(value) for value in payload.get(
+            "cors_origins", ["http://localhost:5173", "http://127.0.0.1:5173"],
         )),
     )

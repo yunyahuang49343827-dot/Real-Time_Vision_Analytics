@@ -22,3 +22,9 @@ scene_runtime_profiles:
 visualization:
   heatmap:
     classes: [car, motorcycle, bus, truck]
+analysis_mode_sources:
+  standard: pexels_13258685
+  aerial: pexels_9322363
+cors_origins:
+  - http://localhost:5173
+  - http://127.0.0.1:5173

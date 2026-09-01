@@ -15,6 +15,11 @@ class JobStatus(StrEnum):
     FAILED = "FAILED"
 
 
+class AnalysisMode(StrEnum):
+    STANDARD = "standard"
+    AERIAL = "aerial"
+
+
 class ErrorDetail(BaseModel):
     code: str
     message: str
@@ -43,6 +48,9 @@ class JobStatusResponse(BaseModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     error: ErrorDetail | None = None
+    analysis_mode: AnalysisMode = AnalysisMode.STANDARD
+    processed_frames: int = Field(default=0, ge=0)
+    total_frames: int | None = Field(default=None, ge=0)
 
 
 class VideoMetadataResponse(BaseModel):

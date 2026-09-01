@@ -59,9 +59,10 @@ class FakeRunner:
     def __init__(self, *, gate: threading.Event | None = None, fail: bool = False) -> None:
         self.gate = gate; self.fail = fail; self.calls: list[tuple[Path, Path, str]] = []
 
-    def run(self, input_path: Path, output_directory: Path, job_id: str, progress_callback):
-        self.calls.append((input_path, output_directory, job_id))
-        progress_callback(0.25)
+    def run(self, input_path: Path, output_directory: Path, job_id: str, progress_callback,
+            *, analysis_mode: str = "standard", source_id: str | None = None):
+        self.calls.append((input_path, output_directory, job_id, analysis_mode, source_id))
+        progress_callback(0.25, 1, 4)
         if self.gate is not None:
             assert self.gate.wait(timeout=5)
         if self.fail:
@@ -124,8 +125,13 @@ def wait_terminal(client: TestClient, job_id: str) -> dict[str, object]:
     raise AssertionError("job did not reach terminal status")
 
 
-def post_video(client: TestClient, video_bytes: bytes, filename: str = "traffic.avi"):
-    return client.post("/jobs", files={"video": (filename, video_bytes, "video/x-msvideo")})
+def post_video(client: TestClient, video_bytes: bytes, filename: str = "traffic.avi",
+               analysis_mode: str = "standard"):
+    return client.post(
+        "/jobs",
+        data={"analysis_mode": analysis_mode},
+        files={"video": (filename, video_bytes, "video/x-msvideo")},
+    )
 
 
 def test_health_and_swagger(tmp_path: Path) -> None:
@@ -144,9 +150,44 @@ def test_create_job_is_non_blocking_and_uses_uuid(tmp_path: Path) -> None:
         response = post_video(client, video)
         assert response.status_code == 202 and response.json()["status"] == "CREATED"
         UUID(response.json()["job_id"])
-        assert client.get(f"/jobs/{response.json()['job_id']}").json()["status"] in {"CREATED", "PROCESSING"}
+        active = client.get(f"/jobs/{response.json()['job_id']}").json()
+        assert active["status"] in {"CREATED", "PROCESSING"}
+        for _ in range(100):
+            active = client.get(f"/jobs/{response.json()['job_id']}").json()
+            if active["processed_frames"] == 1:
+                break
+            time.sleep(0.01)
+        assert active["processed_frames"] == 1 and active["total_frames"] == 4
         gate.set()
         assert wait_terminal(client, response.json()["job_id"])["status"] == "COMPLETED"
+
+
+def test_analysis_mode_selects_governed_scene_and_runtime_profile(tmp_path: Path) -> None:
+    runner = FakeRunner(); video = synthetic_video(tmp_path / "source.avi")
+    config = api_config(tmp_path)
+    config.analysis_mode_sources.update({"standard": "scene", "aerial": "aerial-scene"})
+    with TestClient(create_app(config=config, runner=runner)) as client:
+        job_id = post_video(client, video, analysis_mode="aerial").json()["job_id"]
+        assert wait_terminal(client, job_id)["status"] == "COMPLETED"
+    assert runner.calls[0][3:] == ("aerial", "aerial-scene")
+
+
+def test_invalid_analysis_mode_is_rejected(tmp_path: Path) -> None:
+    video = synthetic_video(tmp_path / "source.avi")
+    with TestClient(create_app(config=api_config(tmp_path), runner=FakeRunner())) as client:
+        response = post_video(client, video, analysis_mode="rejected-model")
+        assert response.status_code == 422
+        assert response.json()["error"]["code"] == "REQUEST_VALIDATION_ERROR"
+
+
+def test_vite_development_origin_is_allowed_by_cors(tmp_path: Path) -> None:
+    with TestClient(create_app(config=api_config(tmp_path), runner=FakeRunner())) as client:
+        response = client.options("/health", headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+        })
+        assert response.status_code == 200
+        assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
 
 
 @pytest.mark.parametrize(
