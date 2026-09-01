@@ -1,0 +1,55 @@
+version: V2-3B.1
+seed: 2311
+stage19_manifest: outputs/evaluation/stage19/system_evaluation_manifest.csv
+video_metadata: data/interim/video_metadata.csv
+stage4_detection_dir: outputs/detections/stage4
+output_root: data/interim/v2_targeted_annotation
+candidate_manifest: data/manifests/v2_targeted_annotation_candidates.csv
+duplicate_hamming_threshold: 2
+near_duplicate_max_seconds: 0.10
+contact_sheet_size: 25
+sampling_method_fractions:
+  MODEL_ASSISTED_POSITIVE: 0.45
+  SYSTEMATIC_TEMPORAL: 0.30
+  DIFFICULT_HEURISTIC: 0.15
+  HARD_NEGATIVE_CONTEXT: 0.10
+scenes:
+  Taipei:
+    video_id: pexels_13258685_traffic_in_city
+    final_target: 302
+    preliminary_target: 440
+    minimum_temporal_separation_seconds: 0.2
+    systematic_interval_seconds: 1.0
+    static_tags: [INTERSECTION, CROSSWALK]
+  Urban:
+    video_id: pexels_37258214_urban_traffic_cars_motorcycles
+    final_target: 175
+    preliminary_target: 260
+    minimum_temporal_separation_seconds: 0.1
+    systematic_interval_seconds: 0.75
+    static_tags: [INTERSECTION]
+  Aerial:
+    video_id: pexels_9322363_aerial_busy_intersection
+    final_target: 92
+    preliminary_target: 120
+    minimum_temporal_separation_seconds: 0.1
+    systematic_interval_seconds: 0.5
+    static_tags: [INTERSECTION, AERIAL_SMALL_OBJECT]
+  Highway:
+    video_id: pexels_2103099_traffic_flow_highway
+    final_target: 50
+    preliminary_target: 80
+    minimum_temporal_separation_seconds: 0.5
+    systematic_interval_seconds: 1.5
+    static_tags: []
+raw_video_sha256:
+  pexels_13258685_traffic_in_city: 2954546905ba59e587f08d5912446eaa0e2e78ac8a46bf5a4551b4425fb84ace
+  pexels_37258214_urban_traffic_cars_motorcycles: ddf8c044b966479515568402bc2c293cb08d87695d69e210eede3cc102bb6e53
+  pexels_9322363_aerial_busy_intersection: 7506c1997481f4df107e4c4f17b8bb5eccbd706f077f54980fa2ac8a73a57c07
+  pexels_2103099_traffic_flow_highway: 247a283c641a514a6947999a64f7fd90ce28755bff491bb9c025b708ccc57d3d
+governance:
+  stage18_used_for_selection: false
+  stage19_ranges_excluded: true
+  model_prediction_is_ground_truth: false
+  training_performed: false
+  final_v2_holdout_created: false

@@ -23,6 +23,9 @@ data/raw/**
 data/processed/stage17/**
 data/processed/stage18/**
 data/interim/v2_openimages_review/**
+data/interim/v2_targeted_annotation/images/**
+data/interim/v2_targeted_annotation/mined/**
+data/interim/v2_targeted_annotation/contact_sheets/**
 
 # Generated artifacts
 outputs/**
