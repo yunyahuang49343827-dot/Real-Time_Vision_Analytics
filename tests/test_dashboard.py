@@ -116,7 +116,12 @@ def event_payload() -> dict[str, object]:
 def test_api_client_health_and_create_job() -> None:
     session = FakeSession(
         FakeResponse(payload={"status": "ok", "service": "vision-analytics",
-                              "runtime_model": "models/pretrained/yolo26n.pt"}),
+                              "runtime_model": "models/pretrained/yolo26n.pt",
+                              "runtime_model_sha256": "abc123",
+                              "device": "mps",
+                              "runtime_profiles": {
+                                  "standard": {"imgsz": 640, "confidence_threshold": 0.25}
+                              }}),
         FakeResponse(status_code=202, payload={"job_id": "job-1", "status": "CREATED"}),
     )
     client = VisionAnalyticsApiClient(config(), session=session)

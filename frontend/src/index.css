@@ -9,5 +9,7 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; }
+html, body, #root { min-height: 100%; }
+body { margin: 0; min-width: 320px; min-height: 100vh; overflow-x: hidden; }
 button, input { font: inherit; }
+video, img, svg { max-width: 100%; }

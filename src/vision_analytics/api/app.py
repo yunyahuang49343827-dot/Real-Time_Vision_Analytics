@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import re
 import shutil
@@ -71,6 +72,14 @@ def _safe_job_file(job_directory: Path, relative: str) -> Path:
     return resolved
 
 
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 async def _save_upload(upload: UploadFile, destination: Path, limit: int) -> int:
     destination.parent.mkdir(parents=True, exist_ok=False)
     size = 0
@@ -90,6 +99,18 @@ def create_app(*, config: ApiConfig | None = None, runner: PipelineRunner | None
         active_config.job_output_directory, active_runner,
         worker_threads=active_config.worker_threads,
     )
+    runtime_model_sha256 = _sha256_file(active_config.runtime_model)
+    health_profiles = {
+        name: {
+            "imgsz": profile.imgsz,
+            "confidence_threshold": profile.confidence_threshold,
+        }
+        for name, profile in active_config.runtime_profiles.items()
+    }
+    health_profiles.setdefault("standard", {
+        "imgsz": active_config.imgsz,
+        "confidence_threshold": active_config.confidence_threshold,
+    })
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -127,6 +148,9 @@ def create_app(*, config: ApiConfig | None = None, runner: PipelineRunner | None
         return HealthResponse(
             status="ok", service="vision-analytics",
             runtime_model=APPROVED_RUNTIME_MODEL.as_posix(),
+            runtime_model_sha256=runtime_model_sha256,
+            device=active_config.device,
+            runtime_profiles=health_profiles,
         )
 
     @application.post(

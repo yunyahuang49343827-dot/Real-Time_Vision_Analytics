@@ -7,6 +7,9 @@ export interface HealthResponse {
   status: string
   service: string
   runtime_model: string
+  runtime_model_sha256: string
+  device: string
+  runtime_profiles: Record<string, { imgsz: number; confidence_threshold: number }>
 }
 
 export interface JobCreateResponse {
@@ -84,6 +87,7 @@ export interface EventRecord {
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "")
+const API_TIMEOUT_MS = 15_000
 
 export class ApiError extends Error {
   constructor(public readonly code: string, message: string) {
@@ -91,13 +95,26 @@ export class ApiError extends Error {
   }
 }
 
-async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response
+async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController()
+  let timedOut = false
+  const timeout = window.setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, API_TIMEOUT_MS)
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, init)
-  } catch {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } catch (error) {
+    if (timedOut) throw new ApiError("API_TIMEOUT", "分析服務回應逾時，請稍後再試。")
+    if (error instanceof ApiError) throw error
     throw new ApiError("BACKEND_UNAVAILABLE", "無法連線至分析服務，請確認 FastAPI 已啟動。")
+  } finally {
+    window.clearTimeout(timeout)
   }
+}
+
+async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetchWithTimeout(`${API_BASE_URL}${path}`, init)
   const payload = await response.json().catch(() => null)
   if (!response.ok) {
     const detail = payload?.error
@@ -141,7 +158,7 @@ export async function getArtifactRows<T extends Record<string, string>>(
   jobId: string,
   artifactKey: string,
 ): Promise<T[]> {
-  const response = await fetch(artifactUrl(jobId, artifactKey))
+  const response = await fetchWithTimeout(artifactUrl(jobId, artifactKey))
   if (!response.ok) throw new ApiError("ARTIFACT_UNAVAILABLE", "分析資料目前無法取得。")
   const parsed = Papa.parse<T>(await response.text(), { header: true, skipEmptyLines: true })
   if (parsed.errors.length) throw new ApiError("ARTIFACT_INVALID", "分析資料格式無法解析。")

@@ -1,6 +1,11 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { createAnalysisJob, getJobStatus } from "./client"
+import { createAnalysisJob, getHealth, getJobStatus } from "./client"
+
+afterEach(() => {
+  vi.useRealTimers()
+  vi.restoreAllMocks()
+})
 
 describe("FastAPI client contract", () => {
   it("uploads the selected file and governed analysis mode", async () => {
@@ -38,5 +43,17 @@ describe("FastAPI client contract", () => {
     expect(status).toMatchObject({
       status: "PROCESSING", progress: 0.42, processed_frames: 42, total_frames: 100,
     })
+  })
+
+  it("maps an API timeout to a safe Traditional Chinese error", async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal("fetch", vi.fn().mockImplementation((_input, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")))
+    })))
+
+    const request = getHealth()
+    const expectation = expect(request).rejects.toMatchObject({ code: "API_TIMEOUT", message: expect.stringContaining("逾時") })
+    await vi.advanceTimersByTimeAsync(15_000)
+    await expectation
   })
 })

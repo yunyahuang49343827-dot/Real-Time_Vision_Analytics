@@ -33,6 +33,14 @@ class HealthResponse(BaseModel):
     status: str
     service: str
     runtime_model: str
+    runtime_model_sha256: str
+    device: str
+    runtime_profiles: dict[str, "RuntimeProfileResponse"]
+
+
+class RuntimeProfileResponse(BaseModel):
+    imgsz: int
+    confidence_threshold: float
 
 
 class JobCreateResponse(BaseModel):

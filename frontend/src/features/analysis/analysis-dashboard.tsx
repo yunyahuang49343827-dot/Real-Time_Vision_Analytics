@@ -65,12 +65,18 @@ export function AnalysisDashboard({ pollIntervalMs = 1200 }: { pollIntervalMs?: 
   const displayError = statusQuery.data?.error?.message
     ?? (creation.error instanceof Error ? creation.error.message : null)
     ?? (statusQuery.error instanceof Error ? statusQuery.error.message : null)
+  const healthError = health.error instanceof Error ? health.error.message : null
+  const safeDisplayError = statusQuery.data?.error?.code === "PIPELINE_FAILED"
+    ? "影片分析失敗，請確認影片格式後重新嘗試。"
+    : displayError
 
-  if (completed && jobId && resultsQuery.data && eventsQuery.data) {
+  if (completed && jobId && resultsQuery.data && eventsQuery.data && statusQuery.data && health.data) {
     return <CompletedDashboard
       jobId={jobId}
       result={resultsQuery.data}
       events={eventsQuery.data}
+      status={statusQuery.data!}
+      health={health.data!}
       onNewAnalysis={() => {
         setJobId(null)
         setFile(null)
@@ -148,7 +154,7 @@ export function AnalysisDashboard({ pollIntervalMs = 1200 }: { pollIntervalMs?: 
         <Card className="h-fit">
           <CardHeader><h2 className="text-lg font-bold">分析狀態</h2></CardHeader>
           <CardContent>
-            {!status && !displayError && <div className="py-10 text-center text-sm text-slate-500">提交影片後，這裡會顯示即時進度。</div>}
+            {!status && !safeDisplayError && <div className="py-10 text-center text-sm text-slate-500"><strong className="mb-1 block text-slate-700">尚未分析</strong>提交影片後，這裡會顯示即時進度。</div>}
             {status && (
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
@@ -159,10 +165,10 @@ export function AnalysisDashboard({ pollIntervalMs = 1200 }: { pollIntervalMs?: 
                 </div>
                 <Progress value={progress} />
                 <div className="flex items-center justify-between text-sm"><span className="font-semibold text-slate-800">Progress {progress}%</span><span className="text-slate-500">{statusQuery.data?.processed_frames ?? 0} / {statusQuery.data?.total_frames ?? "—"} frames</span></div>
-                {completed && <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">分析已完成，可前往其他功能區查看結果。</div>}
+                {completed && <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{resultsQuery.isLoading || eventsQuery.isLoading ? "正在載入分析結果…" : "分析已完成，可前往其他功能區查看結果。"}</div>}
               </div>
             )}
-            {(displayError || completedDataError) && <div role="alert" className="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{displayError ?? completedDataError}</div>}
+            {(safeDisplayError || completedDataError || healthError) && <div role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{safeDisplayError ?? completedDataError ?? healthError}</div>}
           </CardContent>
         </Card>
       </div>

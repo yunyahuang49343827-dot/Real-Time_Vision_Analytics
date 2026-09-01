@@ -26,5 +26,6 @@ export function useAnalyticsArtifacts(jobId: string, artifacts: ArtifactReferenc
     directionRows: directions.data ?? [],
     trafficRows: traffic.data ?? [],
     loading: classes.isLoading || directions.isLoading || traffic.isLoading,
+    error: [classes.error, directions.error, traffic.error].find(Boolean) as Error | null | undefined,
   }
 }

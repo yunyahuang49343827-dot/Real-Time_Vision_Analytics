@@ -55,11 +55,15 @@ def _draw_context(
         start_i, end_i = tuple(map(round, start)), tuple(map(round, end))
         cv2.line(frame, start_i, end_i, (0, 210, 255), 2)
         cv2.putText(frame, line.line_id, start_i, cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 210, 255), 2)
+    zone_layer = frame.copy()
     for zone in zones:
         polygon = zone.pixel_polygon(width, height).astype(np.int32)
-        cv2.polylines(frame, [polygon], True, (255, 170, 0), 2)
+        cv2.polylines(zone_layer, [polygon], True, (148, 163, 184), 1)
         anchor = tuple(polygon[0].tolist())
-        cv2.putText(frame, zone.zone_id, anchor, cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 170, 0), 2)
+        cv2.putText(zone_layer, zone.zone_id, anchor, cv2.FONT_HERSHEY_SIMPLEX, 0.45, (148, 163, 184), 1)
+    if zones:
+        # Preserve spatial context without allowing polygons to dominate the view.
+        cv2.addWeighted(zone_layer, 0.32, frame, 0.68, 0, frame)
     for offset, event in enumerate(events[-3:]):
         text = f"{event.event_type} | {event.severity} | T{event.track_id if event.track_id is not None else '-'}"
         cv2.putText(frame, text, (12, 28 + offset * 24), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (20, 20, 240), 2)

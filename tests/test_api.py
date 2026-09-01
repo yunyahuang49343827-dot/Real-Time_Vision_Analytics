@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import shutil
 import sys
 import threading
@@ -139,6 +140,11 @@ def test_health_and_swagger(tmp_path: Path) -> None:
         health = client.get("/health")
         assert health.status_code == 200
         assert health.json()["runtime_model"] == "models/pretrained/yolo26n.pt"
+        assert health.json()["runtime_model_sha256"] == hashlib.sha256(b"approved-pretrained").hexdigest()
+        assert health.json()["device"] == "mps"
+        assert health.json()["runtime_profiles"]["standard"] == {
+            "imgsz": 640, "confidence_threshold": 0.25,
+        }
         assert client.get("/docs").status_code == 200
         assert "/jobs" in client.get("/openapi.json").json()["paths"]
 
