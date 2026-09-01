@@ -32,6 +32,7 @@ from vision_analytics.dashboard.formatting import (  # noqa: E402
     normalize_progress,
     preferred_browser_artifact_key,
     status_label,
+    visualization_artifact_key,
 )
 
 
@@ -88,6 +89,10 @@ def result_payload() -> dict[str, object]:
             "processed_video": "processed_browser.mp4",
             "processed_raw_video": "processed_raw.mp4",
             "processed_browser_video": "processed_browser.mp4",
+            "tracking_raw_video": "tracking_raw.mp4",
+            "tracking_browser_video": "tracking_browser.mp4",
+            "heatmap_raw_video": "heatmap_raw.mp4",
+            "heatmap_browser_video": "heatmap_browser.mp4",
             "events_csv": "events.csv",
             "evidence_manifest": "evidence_manifest.csv",
             "traffic_summary_csv": "traffic_summary.csv",
@@ -181,7 +186,7 @@ def test_progress_timestamp_and_supported_status_formatting() -> None:
     assert SUPPORTED_STATUSES == {"CREATED", "PROCESSING", "COMPLETED", "FAILED"}
     for status in SUPPORTED_STATUSES:
         assert status_label(status) != "UNKNOWN"
-    assert status_label("OTHER") == "UNKNOWN"
+    assert status_label("OTHER") == "UNKNOWN｜未知"
 
 
 def test_dashboard_prefers_browser_video_and_never_raw_fallback() -> None:
@@ -192,6 +197,9 @@ def test_dashboard_prefers_browser_video_and_never_raw_fallback() -> None:
         "processed_raw_video": "processed_raw.mp4",
         "processed_browser_video": None,
     }) is None
+    assert visualization_artifact_key(references, "追蹤／移動軌跡") == "tracking_browser_video"
+    assert visualization_artifact_key(references, "交通活動熱圖") == "heatmap_browser_video"
+    assert visualization_artifact_key(references, "other") is None
 
 
 def test_responsive_processed_video_uses_center_column_and_aspect_ratio(monkeypatch) -> None:
@@ -239,7 +247,9 @@ def test_dashboard_app_import_smoke() -> None:
     assert callable(dashboard_app.main)
     source = Path(dashboard_app.__file__).read_text(encoding="utf-8")
     assert 'layout="wide"' in source
-    assert "render_processed_video(st.session_state.processed_video)" in source
+    assert '"視覺化模式"' in source
+    assert '"追蹤／移動軌跡"' in source and '"交通活動熱圖"' in source
+    assert "render_processed_video(video)" in source
 
 
 def test_event_formatting_uses_governed_interpretation_wording() -> None:
@@ -250,8 +260,20 @@ def test_event_formatting_uses_governed_interpretation_wording() -> None:
                    "confirmed violation", "accident prediction"):
         assert unsafe not in combined
     row = event_table_rows([event_payload()])[0]
-    assert row["frame_id"] == 4 and row["primary_track_id"] == 1
-    assert row["timestamp"] == "00:00:00.40"
+    assert row["影格"] == 4 and row["主要 Track ID"] == 1
+    assert row["時間"] == "00:00:00.40"
+
+
+def test_dashboard_is_traditional_chinese_first() -> None:
+    dashboard_root = PROJECT_ROOT / "src/vision_analytics/dashboard"
+    source = "\n".join(path.read_text(encoding="utf-8") for path in dashboard_root.glob("*.py"))
+    for label in (
+        "上傳交通影片", "開始分析", "分析狀態", "分析結果影片", "交通分析",
+        "事件檢視", "事件證據", "新增分析", "追蹤／移動軌跡", "交通活動熱圖",
+    ):
+        assert label in source
+    assert "不代表實際距離、碰撞風險或事故機率" in source
+    assert "不代表已確認交通違規" in source
 
 
 def test_dashboard_extensions_match_stage20_and_no_direct_ai_runtime() -> None:

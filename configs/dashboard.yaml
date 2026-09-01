@@ -2,4 +2,4 @@ base_url: http://127.0.0.1:8000
 timeout_seconds: 10.0
 poll_interval_seconds: 2.0
 supported_extensions: [mp4, mov, avi]
-page_title: Vision Analytics Dashboard
+page_title: 視覺分析儀表板

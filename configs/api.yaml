@@ -10,3 +10,15 @@ device: mps
 imgsz: 640
 confidence_threshold: 0.25
 tracker: bytetrack.yaml
+runtime_profiles:
+  standard:
+    imgsz: 640
+    confidence_threshold: 0.25
+  aerial:
+    imgsz: 960
+    confidence_threshold: 0.15
+scene_runtime_profiles:
+  pexels_9322363: aerial
+visualization:
+  heatmap:
+    classes: [car, motorcycle, bus, truck]

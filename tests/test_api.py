@@ -19,7 +19,12 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from vision_analytics.api.app import create_app  # noqa: E402
-from vision_analytics.api.config import APPROVED_RUNTIME_MODEL, ApiConfig  # noqa: E402
+from vision_analytics.api.config import (  # noqa: E402
+    APPROVED_RUNTIME_MODEL,
+    ApiConfig,
+    RuntimeProfile,
+    load_api_config,
+)
 from vision_analytics.api.schemas import JobStatus  # noqa: E402
 from vision_analytics.events.schema import EVENT_FIELDS  # noqa: E402
 from vision_analytics.services.jobs import JobManager  # noqa: E402
@@ -78,6 +83,10 @@ class FakeRunner:
         (output_directory / "traffic_summary.csv").write_text("total_line_crossing_count\n1\n", encoding="utf-8")
         (output_directory / "processed_raw.mp4").write_bytes(b"raw-processed")
         (output_directory / "processed_browser.mp4").write_bytes(b"browser-processed")
+        (output_directory / "tracking_raw.mp4").write_bytes(b"raw-tracking")
+        (output_directory / "tracking_browser.mp4").write_bytes(b"browser-tracking")
+        (output_directory / "heatmap_raw.mp4").write_bytes(b"raw-heatmap")
+        (output_directory / "heatmap_browser.mp4").write_bytes(b"browser-heatmap")
         progress_callback(0.9)
         return {
             "job_id": job_id,
@@ -95,6 +104,10 @@ class FakeRunner:
                 "processed_video": "processed_browser.mp4",
                 "processed_raw_video": "processed_raw.mp4",
                 "processed_browser_video": "processed_browser.mp4",
+                "tracking_raw_video": "tracking_raw.mp4",
+                "tracking_browser_video": "tracking_browser.mp4",
+                "heatmap_raw_video": "heatmap_raw.mp4",
+                "heatmap_browser_video": "heatmap_browser.mp4",
                 "events_csv": "events.csv",
                 "evidence_manifest": "evidence_manifest.csv",
                 "traffic_summary_csv": "traffic_summary.csv",
@@ -202,6 +215,10 @@ def test_completed_results_events_and_evidence(tmp_path: Path) -> None:
         assert browser.headers["content-type"] == "video/mp4"
         raw = client.get(f"/jobs/{job_id}/artifacts/processed_raw_video")
         assert raw.status_code == 200 and raw.content == b"raw-processed"
+        tracking = client.get(f"/jobs/{job_id}/artifacts/tracking_browser_video")
+        heatmap = client.get(f"/jobs/{job_id}/artifacts/heatmap_browser_video")
+        assert tracking.content == b"browser-tracking" and heatmap.content == b"browser-heatmap"
+        assert tracking.headers["content-type"] == heatmap.headers["content-type"] == "video/mp4"
         assert client.get(f"/jobs/{job_id}/artifacts/../../job.json").status_code == 404
         assert client.get(f"/jobs/{job_id}/artifacts/not_a_key").status_code == 404
         assert client.get(f"/jobs/{job_id}/evidence/missing").status_code == 404
@@ -247,6 +264,21 @@ def test_rejected_runtime_model_is_forbidden(tmp_path: Path) -> None:
         )
 
 
+def test_standard_and_aerial_runtime_profiles_are_config_driven() -> None:
+    config = load_api_config(PROJECT_ROOT / "configs/api.yaml", project_root=PROJECT_ROOT)
+    assert config.runtime_profile_for("pexels_13258685") == RuntimeProfile(640, 0.25)
+    assert config.runtime_profile_for("pexels_9322363") == RuntimeProfile(960, 0.15)
+    assert config.runtime_model.relative_to(config.project_root) == APPROVED_RUNTIME_MODEL
+
+
+def test_production_pipeline_has_one_tracking_inference_path() -> None:
+    source = (PROJECT_ROOT / "src/vision_analytics/services/pipeline.py").read_text(encoding="utf-8")
+    production = source.split("class OpenCVPipelineSmokeRunner", maxsplit=1)[0]
+    assert production.count("tracker.track_frame(") == 1
+    assert production.count("process_video(") == 1
+    assert "render_tracking" in production and "render_heatmap" in production
+
+
 def test_small_service_integration_calls_existing_opencv_pipeline(tmp_path: Path) -> None:
     video = synthetic_video(tmp_path / "source.avi", frames=4)
     config = api_config(tmp_path)
@@ -261,3 +293,7 @@ def test_small_service_integration_calls_existing_opencv_pipeline(tmp_path: Path
             assert result["artifacts"]["processed_video"] is None
             assert result["artifacts"]["processed_browser_video"] is None
             assert result["warnings"][0]["code"] == "VIDEO_TRANSCODE_UNAVAILABLE"
+        else:
+            for key in ("tracking_browser_video", "heatmap_browser_video"):
+                artifact = config.job_output_directory / job_id / result["artifacts"][key]
+                assert artifact.is_file() and artifact.stat().st_size > 0

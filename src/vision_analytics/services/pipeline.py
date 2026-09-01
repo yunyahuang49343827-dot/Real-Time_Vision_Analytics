@@ -8,6 +8,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Callable
 
+import cv2
 import pandas as pd
 
 from vision_analytics.analytics.traffic import (
@@ -30,11 +31,12 @@ from vision_analytics.spatial.line_crossing import (
 )
 from vision_analytics.spatial.proximity import ProximityEngine, load_proximity_config
 from vision_analytics.spatial.zone import ZoneEngine, load_zone_config
-from vision_analytics.tracking.tracker import StatefulByteTracker, draw_tracks
-from vision_analytics.tracking.trajectory import TrajectoryEngine, draw_trajectory_trails
+from vision_analytics.tracking.tracker import StatefulByteTracker
+from vision_analytics.tracking.trajectory import TrajectoryEngine
 from vision_analytics.video.metadata import profile_video
 from vision_analytics.video.pipeline import add_overlay, process_video
 from vision_analytics.services.video_delivery import transcode_browser_video
+from vision_analytics.services.visualization import SupervisionVisualizer, VisualizationSettings
 
 ProgressCallback = Callable[[float], None]
 
@@ -74,9 +76,10 @@ class ExistingAnalyticsPipeline:
         if any(source_id not in mapping for mapping in required):
             raise ValueError(f"scene source_id is not fully configured: {source_id}")
 
+        runtime_profile = self.config.runtime_profile_for(source_id)
         tracker = StatefulByteTracker(
-            self.config.runtime_model, device=self.config.device, imgsz=self.config.imgsz,
-            confidence_threshold=self.config.confidence_threshold,
+            self.config.runtime_model, device=self.config.device, imgsz=runtime_profile.imgsz,
+            confidence_threshold=runtime_profile.confidence_threshold,
             tracker_config=self.config.tracker,
         )
         trajectory = TrajectoryEngine(max_history_length=30, minimum_displacement=5.0)
@@ -98,6 +101,16 @@ class ExistingAnalyticsPipeline:
         evidence_dir = output_directory / "evidence"
         evidence = EvidenceCapture(load_evidence_policy(self.config.scene_config), evidence_dir, Path("evidence"))
         captured_events: list[EventRecord] = []
+        visualizer = SupervisionVisualizer(VisualizationSettings(
+            heatmap_classes=self.config.heatmap_classes,
+        ))
+        heatmap_raw_video = output_directory / "heatmap_raw.mp4"
+        heatmap_writer = cv2.VideoWriter(
+            str(heatmap_raw_video), cv2.VideoWriter_fourcc(*"mp4v"),
+            float(metadata["fps"]), (width, height),
+        )
+        if not heatmap_writer.isOpened():
+            raise RuntimeError("heatmap VideoWriter could not be opened")
 
         def update(frame: object, frame_index: int, timestamp: float, fps: float) -> None:
             tracks = tracker.track_frame(
@@ -120,27 +133,50 @@ class ExistingAnalyticsPipeline:
                 duration_thresholds={rule.zone_id: rule.duration_seconds for rule in stationary[source_id]},
             ))
             new_events.extend(event_engine.normalize_proximity(proximity_events))
-            draw_trajectory_trails(frame, tracks, trajectory)
-            draw_tracks(frame, tracks)
-            add_overlay(frame, video_id=job_id, frame_index=frame_index, source_fps=fps)
-            captured_events.extend(evidence.capture_events(frame, new_events, tracks))
+            heatmap_frame = visualizer.render_heatmap(
+                frame, tracks, lines=line_engine.lines, zones=zone_engine.zones, events=new_events,
+            )
+            add_overlay(
+                heatmap_frame, video_id=job_id, frame_index=frame_index, source_fps=fps,
+            )
+            heatmap_writer.write(heatmap_frame)
+            tracking_frame = visualizer.render_tracking(
+                frame, tracks, lines=line_engine.lines, zones=zone_engine.zones, events=new_events,
+            )
+            add_overlay(
+                tracking_frame, video_id=job_id, frame_index=frame_index, source_fps=fps,
+            )
+            frame[:] = tracking_frame
+            captured_events.extend(evidence.capture_events(tracking_frame, new_events, tracks))
 
-        processed_video = output_directory / "processed_raw.mp4"
-        benchmark = process_video(
-            input_path, processed_video, video_id=job_id, source_id=source_id,
-            frame_processor=update,
-            progress_callback=lambda done, total: progress_callback(done / total if total else 0.0),
-        )
+        tracking_raw_video = output_directory / "tracking_raw.mp4"
+        try:
+            benchmark = process_video(
+                input_path, tracking_raw_video, video_id=job_id, source_id=source_id,
+                frame_processor=update,
+                progress_callback=lambda done, total: progress_callback(done / total if total else 0.0),
+            )
+        finally:
+            heatmap_writer.release()
         if benchmark["status"] == "FAIL":
             raise RuntimeError(str(benchmark["validation_message"]))
-        browser_video = output_directory / "processed_browser.mp4"
-        delivery = transcode_browser_video(
-            processed_video, browser_video, job_directory=output_directory,
+        if not heatmap_raw_video.is_file() or heatmap_raw_video.stat().st_size == 0:
+            raise RuntimeError("heatmap visualization artifact is empty")
+        tracking_delivery = transcode_browser_video(
+            tracking_raw_video, output_directory / "tracking_browser.mp4",
+            job_directory=output_directory,
         )
-        delivery_warnings = (
-            [{"code": delivery.warning_code, "message": delivery.warning_message}]
-            if delivery.warning_code and delivery.warning_message else []
+        heatmap_delivery = transcode_browser_video(
+            heatmap_raw_video, output_directory / "heatmap_browser.mp4",
+            job_directory=output_directory,
         )
+        delivery_warnings = []
+        for label, delivery in (("tracking", tracking_delivery), ("heatmap", heatmap_delivery)):
+            if delivery.warning_code and delivery.warning_message:
+                delivery_warnings.append({
+                    "code": delivery.warning_code,
+                    "message": f"{label} visualization: {delivery.warning_message}",
+                })
 
         events_path = output_directory / "events.csv"
         _write_csv(events_path, EVENT_FIELDS, [record.to_row() for record in captured_events])
@@ -214,13 +250,23 @@ class ExistingAnalyticsPipeline:
             "event_summary": event_summary,
             "artifacts": {
                 "processed_video": (
-                    _relative(delivery.browser_path, output_directory)
-                    if delivery.browser_path else None
+                    _relative(tracking_delivery.browser_path, output_directory)
+                    if tracking_delivery.browser_path else None
                 ),
-                "processed_raw_video": _relative(processed_video, output_directory),
+                "processed_raw_video": _relative(tracking_raw_video, output_directory),
                 "processed_browser_video": (
-                    _relative(delivery.browser_path, output_directory)
-                    if delivery.browser_path else None
+                    _relative(tracking_delivery.browser_path, output_directory)
+                    if tracking_delivery.browser_path else None
+                ),
+                "tracking_raw_video": _relative(tracking_raw_video, output_directory),
+                "tracking_browser_video": (
+                    _relative(tracking_delivery.browser_path, output_directory)
+                    if tracking_delivery.browser_path else None
+                ),
+                "heatmap_raw_video": _relative(heatmap_raw_video, output_directory),
+                "heatmap_browser_video": (
+                    _relative(heatmap_delivery.browser_path, output_directory)
+                    if heatmap_delivery.browser_path else None
                 ),
                 "events_csv": _relative(events_path, output_directory),
                 "evidence_manifest": _relative(evidence_manifest, output_directory),
@@ -240,15 +286,20 @@ class OpenCVPipelineSmokeRunner:
     def run(self, input_path: Path, output_directory: Path, job_id: str,
             progress_callback: ProgressCallback) -> dict[str, object]:
         metadata = profile_video(input_path, video_id=job_id, source_id="smoke")
-        output = output_directory / "processed_raw.mp4"
+        output = output_directory / "tracking_raw.mp4"
         benchmark = process_video(
             input_path, output, video_id=job_id, source_id="smoke",
             progress_callback=lambda done, total: progress_callback(done / total if total else 0.0),
         )
         if benchmark["status"] == "FAIL":
             raise RuntimeError(str(benchmark["validation_message"]))
-        browser = output_directory / "processed_browser.mp4"
+        browser = output_directory / "tracking_browser.mp4"
         delivery = transcode_browser_video(output, browser, job_directory=output_directory)
+        heatmap_raw = output_directory / "heatmap_raw.mp4"
+        heatmap_raw.write_bytes(output.read_bytes())
+        heatmap_delivery = transcode_browser_video(
+            heatmap_raw, output_directory / "heatmap_browser.mp4", job_directory=output_directory,
+        )
         events = output_directory / "events.csv"; _write_csv(events, EVENT_FIELDS, [])
         evidence_manifest = output_directory / "evidence_manifest.csv"
         evidence_manifest.write_text(
@@ -269,10 +320,18 @@ class OpenCVPipelineSmokeRunner:
                 "processed_video": delivery.browser_path.name if delivery.browser_path else None,
                 "processed_raw_video": output.name,
                 "processed_browser_video": delivery.browser_path.name if delivery.browser_path else None,
+                "tracking_raw_video": output.name,
+                "tracking_browser_video": delivery.browser_path.name if delivery.browser_path else None,
+                "heatmap_raw_video": heatmap_raw.name,
+                "heatmap_browser_video": (
+                    heatmap_delivery.browser_path.name if heatmap_delivery.browser_path else None
+                ),
                 "events_csv": events.name,
                 "evidence_manifest": evidence_manifest.name, "traffic_summary_csv": traffic.name,
             },
             "warnings": ([{
                 "code": delivery.warning_code, "message": delivery.warning_message,
-            }] if delivery.warning_code and delivery.warning_message else []),
+            }] if delivery.warning_code and delivery.warning_message else []) + ([{
+                "code": heatmap_delivery.warning_code, "message": heatmap_delivery.warning_message,
+            }] if heatmap_delivery.warning_code and heatmap_delivery.warning_message else []),
         }

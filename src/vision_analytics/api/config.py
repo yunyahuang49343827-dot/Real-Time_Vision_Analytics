@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping
 
@@ -10,6 +10,16 @@ import yaml
 
 APPROVED_RUNTIME_MODEL = Path("models/pretrained/yolo26n.pt")
 REJECTED_CANDIDATE = Path("models/finetuned/stage17/best.pt")
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeProfile:
+    imgsz: int
+    confidence_threshold: float
+
+    def __post_init__(self) -> None:
+        if self.imgsz <= 0 or not 0 < self.confidence_threshold <= 1:
+            raise ValueError("invalid runtime profile")
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,6 +37,9 @@ class ApiConfig:
     imgsz: int
     confidence_threshold: float
     tracker: str
+    runtime_profiles: Mapping[str, RuntimeProfile] = field(default_factory=dict)
+    scene_runtime_profiles: Mapping[str, str] = field(default_factory=dict)
+    heatmap_classes: frozenset[str] = frozenset({"car", "motorcycle", "bus", "truck"})
 
     def __post_init__(self) -> None:
         root = self.project_root.resolve()
@@ -43,6 +56,12 @@ class ApiConfig:
             raise ValueError("upload limit and worker_threads must be positive")
         if self.device != "mps" or self.imgsz <= 0 or not 0 < self.confidence_threshold <= 1:
             raise ValueError("invalid runtime inference configuration")
+        if any(name not in self.runtime_profiles for name in self.scene_runtime_profiles.values()):
+            raise ValueError("scene references an unknown runtime profile")
+
+    def runtime_profile_for(self, source_id: str) -> RuntimeProfile:
+        name = self.scene_runtime_profiles.get(source_id, "standard")
+        return self.runtime_profiles.get(name, RuntimeProfile(self.imgsz, self.confidence_threshold))
 
 
 def _inside(root: Path, value: object) -> Path:
@@ -61,6 +80,15 @@ def load_api_config(path: Path, *, project_root: Path | None = None) -> ApiConfi
     payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     if not isinstance(payload, Mapping):
         raise ValueError("API config must be a mapping")
+    profile_payload = payload.get("runtime_profiles", {})
+    runtime_profiles = {
+        str(name): RuntimeProfile(
+            imgsz=int(values["imgsz"]),
+            confidence_threshold=float(values.get("confidence_threshold", values.get("conf"))),
+        )
+        for name, values in profile_payload.items()
+    }
+    heatmap = payload.get("visualization", {}).get("heatmap", {})
     return ApiConfig(
         project_root=root,
         upload_directory=_inside(root, payload["upload_directory"]),
@@ -75,4 +103,12 @@ def load_api_config(path: Path, *, project_root: Path | None = None) -> ApiConfi
         imgsz=int(payload.get("imgsz", 640)),
         confidence_threshold=float(payload.get("confidence_threshold", 0.25)),
         tracker=str(payload.get("tracker", "bytetrack.yaml")),
+        runtime_profiles=runtime_profiles,
+        scene_runtime_profiles={
+            str(source): str(profile)
+            for source, profile in payload.get("scene_runtime_profiles", {}).items()
+        },
+        heatmap_classes=frozenset(str(value) for value in heatmap.get(
+            "classes", ["car", "motorcycle", "bus", "truck"],
+        )),
     )

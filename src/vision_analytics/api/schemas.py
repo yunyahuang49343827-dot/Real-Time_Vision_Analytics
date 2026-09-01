@@ -80,6 +80,10 @@ class ArtifactReferences(BaseModel):
     processed_video: str | None = None
     processed_raw_video: str | None = None
     processed_browser_video: str | None = None
+    tracking_raw_video: str | None = None
+    tracking_browser_video: str | None = None
+    heatmap_raw_video: str | None = None
+    heatmap_browser_video: str | None = None
     events_csv: str
     evidence_manifest: str
     traffic_summary_csv: str

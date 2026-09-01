@@ -31,9 +31,10 @@ from vision_analytics.dashboard.components import (  # noqa: E402
 )
 from vision_analytics.dashboard.formatting import (  # noqa: E402
     event_interpretation,
+    event_display_label,
     normalize_progress,
-    preferred_browser_artifact_key,
     status_label,
+    visualization_artifact_key,
 )
 
 CONFIG_PATH = PROJECT_ROOT / "configs" / "dashboard.yaml"
@@ -43,7 +44,7 @@ SESSION_DEFAULTS = {
     "last_uploaded_file_identity": None,
     "results": None,
     "events": [],
-    "processed_video": None,
+    "visualization_videos": {},
     "analytics_tables": {},
     "evidence_cache": {},
     "uploader_generation": 0,
@@ -82,12 +83,16 @@ def _load_completed_job(client: VisionAnalyticsApiClient, job_id: str) -> None:
 def _load_result_artifacts(client: VisionAnalyticsApiClient, job_id: str) -> None:
     result = st.session_state.results or {}
     references = result.get("artifacts", {})
-    browser_key = preferred_browser_artifact_key(references)
-    if st.session_state.processed_video is None and browser_key:
+    videos = dict(st.session_state.visualization_videos)
+    for mode in ("追蹤／移動軌跡", "交通活動熱圖"):
+        browser_key = visualization_artifact_key(references, mode)
+        if not browser_key or browser_key in videos:
+            continue
         try:
-            st.session_state.processed_video = client.get_artifact(job_id, browser_key)
+            videos[browser_key] = client.get_artifact(job_id, browser_key)
         except DashboardApiError as error:
-            st.warning(f"Processed video unavailable in browser-compatible format: {error.message}")
+            st.warning(f"瀏覽器相容的分析影片無法取得：{error.message}")
+    st.session_state.visualization_videos = videos
     tables = dict(st.session_state.analytics_tables)
     for key in ("class_distribution_csv", "direction_distribution_csv", "traffic_over_time_csv"):
         if key in tables or not references.get(key):
@@ -95,7 +100,7 @@ def _load_result_artifacts(client: VisionAnalyticsApiClient, job_id: str) -> Non
         try:
             tables[key] = pd.read_csv(io.BytesIO(client.get_artifact(job_id, key)))
         except (DashboardApiError, ValueError, pd.errors.ParserError) as error:
-            message = error.message if isinstance(error, DashboardApiError) else "Malformed analytics artifact"
+            message = error.message if isinstance(error, DashboardApiError) else "交通分析檔案格式錯誤"
             st.warning(f"{key}: {message}")
     st.session_state.analytics_tables = tables
 
@@ -108,20 +113,20 @@ def main() -> None:
     render_header()
 
     controls = st.columns([1, 5])
-    if controls[0].button("New Analysis", use_container_width=True):
+    if controls[0].button("新增分析", use_container_width=True):
         _reset(); st.rerun()
 
     backend_available = False
     try:
         health = client.health()
         backend_available = health.status == "ok"
-        controls[1].success(f"Backend connected · {health.runtime_model}")
+        controls[1].success(f"後端已連線 · {health.runtime_model}")
     except DashboardApiError:
-        controls[1].error("Backend unavailable. Start FastAPI before submitting analysis.")
+        controls[1].error("後端無法連線，請先啟動 FastAPI 再送出分析。")
 
-    st.subheader("Upload Traffic Video")
+    st.subheader("上傳交通影片")
     uploaded = st.file_uploader(
-        "Choose an MP4, MOV, or AVI video",
+        "選擇 MP4、MOV 或 AVI 影片",
         type=list(config.supported_extensions),
         key=f"traffic_video_{st.session_state.uploader_generation}",
     )
@@ -130,15 +135,15 @@ def main() -> None:
     if uploaded is not None:
         content = uploaded.getvalue()
         identity = f"{uploaded.name}:{len(content)}:{hashlib.sha256(content).hexdigest()}"
-        st.write({"filename": uploaded.name, "size_bytes": len(content)})
+        st.write({"檔名": uploaded.name, "檔案大小（bytes）": len(content)})
 
     active = st.session_state.job_status in {"CREATED", "PROCESSING"}
     analyze = st.button(
-        "Analyze Video", type="primary", disabled=not backend_available or uploaded is None or active,
+        "開始分析", type="primary", disabled=not backend_available or uploaded is None or active,
     )
     if analyze and uploaded is not None and content is not None:
         if active and identity == st.session_state.last_uploaded_file_identity:
-            st.warning("This upload already has an active job.")
+            st.warning("這個上傳檔案已有進行中的分析工作。")
         else:
             try:
                 created = client.create_job(
@@ -150,7 +155,7 @@ def main() -> None:
                 st.session_state.last_uploaded_file_identity = identity
                 st.session_state.results = None
                 st.session_state.events = []
-                st.session_state.processed_video = None
+                st.session_state.visualization_videos = {}
                 st.session_state.analytics_tables = {}
                 st.session_state.evidence_cache = {}
             except DashboardApiError as error:
@@ -162,13 +167,13 @@ def main() -> None:
             job = client.get_job(job_id)
             st.session_state.job_status = job.status.value
             progress = normalize_progress(job.progress)
-            st.subheader("Analysis Status")
-            st.write(f"Job `{job_id}` · {status_label(job.status.value)}")
+            st.subheader("分析狀態")
+            st.write(f"工作 `{job_id}` · {status_label(job.status.value)}")
             st.progress(progress / 100, text=f"{progress}%")
             if job.status.value == "FAILED":
                 detail = job.error
                 st.error(
-                    f"{detail.message if detail else 'Analysis failed'} "
+                    f"{detail.message if detail else '分析失敗'} "
                     f"({detail.code if detail else 'JOB_FAILED'})"
                 )
             elif job.status.value == "COMPLETED":
@@ -178,29 +183,35 @@ def main() -> None:
 
     if st.session_state.job_status == "COMPLETED" and st.session_state.results:
         result = st.session_state.results
-        render_overview(result, "COMPLETED")
+        render_overview(result, status_label("COMPLETED"))
         render_video_metadata(result["video_metadata"])
         _load_result_artifacts(client, str(job_id))
 
-        st.subheader("Processed Video")
-        if st.session_state.processed_video:
-            render_processed_video(st.session_state.processed_video)
+        st.subheader("分析結果影片")
+        mode = st.radio(
+            "視覺化模式", ("追蹤／移動軌跡", "交通活動熱圖"), horizontal=True,
+        )
+        artifact_key = visualization_artifact_key(result.get("artifacts", {}), mode)
+        video = st.session_state.visualization_videos.get(artifact_key) if artifact_key else None
+        if video:
+            render_processed_video(video)
         else:
-            st.warning("Processed video unavailable in browser-compatible format")
+            st.warning("瀏覽器相容格式的分析影片目前無法使用。")
 
         render_traffic_tables(st.session_state.analytics_tables)
         events = st.session_state.events
         render_events(events)
         evidence_events = [event for event in events if event.get("evidence_path")]
-        st.subheader("Evidence Review")
+        st.subheader("事件證據")
         if not evidence_events:
-            st.info("No evidence snapshots are available for this job.")
+            st.info("此分析沒有可用的事件證據圖片。")
         else:
             by_id = {str(event["event_id"]): event for event in evidence_events}
             selected_id = st.selectbox(
-                "Select an event", options=list(by_id),
+                "選擇事件", options=list(by_id),
                 format_func=lambda value: (
-                    f"{value} · {by_id[value]['event_type']} · {by_id[value]['severity']}"
+                    f"{value} · {event_display_label(str(by_id[value]['event_type']))} · "
+                    f"{by_id[value]['severity']}"
                 ),
             )
             selected = by_id[selected_id]
@@ -208,10 +219,11 @@ def main() -> None:
                 str(selected["event_type"]), str(selected["status"]),
             ))
             st.write({
-                "event_type": selected["event_type"], "severity": selected["severity"],
-                "frame_id": selected["frame_index"],
-                "timestamp_seconds": selected["timestamp_seconds"],
-                "primary_track_id": selected.get("track_id"),
+                "事件類型": event_display_label(str(selected["event_type"])),
+                "嚴重度": selected["severity"],
+                "影格": selected["frame_index"],
+                "時間（秒）": selected["timestamp_seconds"],
+                "主要 Track ID": selected.get("track_id"),
             })
             cache = dict(st.session_state.evidence_cache)
             if selected_id not in cache:
@@ -219,7 +231,7 @@ def main() -> None:
                     cache[selected_id] = client.get_evidence(str(job_id), selected_id)
                     st.session_state.evidence_cache = cache
                 except DashboardApiError as error:
-                    st.warning(f"Evidence unavailable: {error.message}")
+                    st.warning(f"事件證據無法取得：{error.message}")
             if cache.get(selected_id):
                 st.image(cache[selected_id], caption=selected_id, use_container_width=True)
 

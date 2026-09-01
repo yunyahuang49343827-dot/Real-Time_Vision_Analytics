@@ -27,8 +27,8 @@ div[data-testid="stVideo"] video {
 
 
 def render_header() -> None:
-    st.title("Real-Time Vision Analytics")
-    st.caption("Job-based traffic video analysis powered by the Stage 20 FastAPI backend.")
+    st.title("即時視覺分析與事件偵測系統")
+    st.caption("以 FastAPI 工作流程執行交通影片分析，視覺化介面由 Streamlit 提供。")
 
 
 def render_overview(result: Mapping[str, object], status: str) -> None:
@@ -39,18 +39,18 @@ def render_overview(result: Mapping[str, object], status: str) -> None:
     peak_end = traffic.get("peak_interval_end_seconds")
     peak_label = (
         f"{format_timestamp(peak_start)}–{format_timestamp(peak_end)}"
-        if peak_start is not None and peak_end is not None else "Not available"
+        if peak_start is not None and peak_end is not None else "無資料"
     )
     columns = st.columns(4)
-    columns[0].metric("Line Crossings", int(traffic.get("total_line_crossing_count", 0)))
-    columns[1].metric("Rule Events", total_events)
-    columns[2].metric("Peak Interval", peak_label)
-    columns[3].metric("Status", status)
+    columns[0].metric("通過計數線", int(traffic.get("total_line_crossing_count", 0)))
+    columns[1].metric("規則事件", total_events)
+    columns[2].metric("尖峰區間", peak_label)
+    columns[3].metric("分析狀態", status)
     st.caption(COUNTING_WORDING)
 
 
 def render_video_metadata(metadata: Mapping[str, object]) -> None:
-    st.subheader("Video Metadata")
+    st.subheader("影片資訊")
     st.dataframe(pd.DataFrame([metadata]), use_container_width=True, hide_index=True)
 
 
@@ -63,11 +63,11 @@ def render_processed_video(data: bytes) -> None:
 
 
 def render_traffic_tables(tables: Mapping[str, pd.DataFrame]) -> None:
-    st.subheader("Traffic Analytics")
+    st.subheader("交通分析")
     labels = {
-        "class_distribution_csv": "Class Distribution",
-        "direction_distribution_csv": "Direction Distribution",
-        "traffic_over_time_csv": "Traffic Over Time",
+        "class_distribution_csv": "類別分布",
+        "direction_distribution_csv": "方向分布",
+        "traffic_over_time_csv": "交通量時間序列",
     }
     for key, title in labels.items():
         frame = tables.get(key)
@@ -82,8 +82,8 @@ def render_traffic_tables(tables: Mapping[str, pd.DataFrame]) -> None:
 
 
 def render_events(events: Sequence[Mapping[str, object]]) -> None:
-    st.subheader("Event Review")
+    st.subheader("事件檢視")
     if not events:
-        st.info("No rule-generated events were returned for this job.")
+        st.info("此分析沒有規則產生的事件。")
         return
     st.dataframe(pd.DataFrame(event_table_rows(events)), use_container_width=True, hide_index=True)

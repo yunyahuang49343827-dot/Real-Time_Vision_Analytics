@@ -220,7 +220,11 @@ def create_app(*, config: ApiConfig | None = None, runner: PipelineRunner | None
         path = _safe_job_file(Path(record.output_directory), relative)
         if not path.is_file():
             raise ApiError(404, "ARTIFACT_NOT_FOUND", "Artifact file is missing")
-        video_keys = {"processed_video", "processed_raw_video", "processed_browser_video"}
+        video_keys = {
+            "processed_video", "processed_raw_video", "processed_browser_video",
+            "tracking_raw_video", "tracking_browser_video",
+            "heatmap_raw_video", "heatmap_browser_video",
+        }
         media_type = "video/mp4" if artifact_key in video_keys else "text/csv"
         return FileResponse(path, media_type=media_type, filename=path.name)
 
