@@ -25,6 +25,7 @@ from vision_analytics.dashboard.components import (  # noqa: E402
     render_events,
     render_header,
     render_overview,
+    render_processed_video,
     render_traffic_tables,
     render_video_metadata,
 )
@@ -183,7 +184,7 @@ def main() -> None:
 
         st.subheader("Processed Video")
         if st.session_state.processed_video:
-            st.video(st.session_state.processed_video)
+            render_processed_video(st.session_state.processed_video)
         else:
             st.warning("Processed video unavailable in browser-compatible format")
 

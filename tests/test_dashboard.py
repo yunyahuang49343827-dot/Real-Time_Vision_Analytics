@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from importlib import import_module
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,10 @@ from vision_analytics.dashboard.api_client import (  # noqa: E402
     DashboardApiError,
     VisionAnalyticsApiClient,
     load_dashboard_config,
+)
+from vision_analytics.dashboard.components import (  # noqa: E402
+    RESPONSIVE_VIDEO_CSS,
+    render_processed_video,
 )
 from vision_analytics.dashboard.formatting import (  # noqa: E402
     PROXIMITY_WORDING,
@@ -187,6 +192,54 @@ def test_dashboard_prefers_browser_video_and_never_raw_fallback() -> None:
         "processed_raw_video": "processed_raw.mp4",
         "processed_browser_video": None,
     }) is None
+
+
+def test_responsive_processed_video_uses_center_column_and_aspect_ratio(monkeypatch) -> None:
+    class Column:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_: object) -> None:
+            return None
+
+    class StreamlitRecorder:
+        def __init__(self) -> None:
+            self.column_spec = None
+            self.markdown_call = None
+            self.video_call = None
+
+        def columns(self, spec, **kwargs):
+            self.column_spec = (spec, kwargs)
+            return Column(), Column(), Column()
+
+        def markdown(self, body, **kwargs):
+            self.markdown_call = (body, kwargs)
+
+        def video(self, data, **kwargs):
+            self.video_call = (data, kwargs)
+
+    recorder = StreamlitRecorder()
+    components = import_module("vision_analytics.dashboard.components")
+    monkeypatch.setattr(components, "st", recorder)
+    render_processed_video(b"browser-video")
+
+    assert recorder.column_spec == ([1, 8, 1], {"gap": "small"})
+    assert recorder.video_call == (b"browser-video", {"width": "stretch"})
+    assert recorder.markdown_call == (
+        RESPONSIVE_VIDEO_CSS, {"unsafe_allow_html": True},
+    )
+    assert "max-width: 100%" in RESPONSIVE_VIDEO_CSS
+    assert "height: auto" in RESPONSIVE_VIDEO_CSS
+    assert "object-fit: contain" in RESPONSIVE_VIDEO_CSS
+    assert "overflow-x: hidden" in RESPONSIVE_VIDEO_CSS
+
+
+def test_dashboard_app_import_smoke() -> None:
+    dashboard_app = import_module("vision_analytics.dashboard.app")
+    assert callable(dashboard_app.main)
+    source = Path(dashboard_app.__file__).read_text(encoding="utf-8")
+    assert 'layout="wide"' in source
+    assert "render_processed_video(st.session_state.processed_video)" in source
 
 
 def test_event_formatting_uses_governed_interpretation_wording() -> None:

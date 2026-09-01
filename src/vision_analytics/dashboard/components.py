@@ -9,6 +9,22 @@ import streamlit as st
 
 from .formatting import COUNTING_WORDING, event_table_rows, format_timestamp
 
+RESPONSIVE_VIDEO_CSS = """
+<style>
+div[data-testid="stVideo"] {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+div[data-testid="stVideo"] video {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+</style>
+"""
+
 
 def render_header() -> None:
     st.title("Real-Time Vision Analytics")
@@ -36,6 +52,14 @@ def render_overview(result: Mapping[str, object], status: str) -> None:
 def render_video_metadata(metadata: Mapping[str, object]) -> None:
     st.subheader("Video Metadata")
     st.dataframe(pd.DataFrame([metadata]), use_container_width=True, hide_index=True)
+
+
+def render_processed_video(data: bytes) -> None:
+    """Render processed video in a bounded, responsive center column."""
+    st.markdown(RESPONSIVE_VIDEO_CSS, unsafe_allow_html=True)
+    _, center, _ = st.columns([1, 8, 1], gap="small")
+    with center:
+        st.video(data, width="stretch")
 
 
 def render_traffic_tables(tables: Mapping[str, pd.DataFrame]) -> None:
