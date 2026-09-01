@@ -81,6 +81,10 @@ class ArtifactReferences(BaseModel):
     events_csv: str
     evidence_manifest: str
     traffic_summary_csv: str
+    class_distribution_csv: str | None = None
+    direction_distribution_csv: str | None = None
+    traffic_over_time_csv: str | None = None
+    event_summary_csv: str | None = None
 
 
 class JobResultResponse(BaseModel):

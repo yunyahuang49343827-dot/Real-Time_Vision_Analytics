@@ -195,6 +195,35 @@ def create_app(*, config: ApiConfig | None = None, runner: PipelineRunner | None
         }) for row in rows]
 
     @application.get(
+        "/jobs/{job_id}/artifacts/{artifact_key}", response_class=FileResponse,
+        responses={
+            200: {"content": {"application/octet-stream": {}}},
+            404: {"model": ErrorResponse}, 409: {"model": ErrorResponse},
+        },
+    )
+    def job_artifact(job_id: str, artifact_key: str):
+        record = _job_or_404(manager, job_id)
+        if record.status is not JobStatus.COMPLETED:
+            raise ApiError(409, "JOB_NOT_COMPLETED", f"Job status is {record.status.value}")
+        result_path = Path(record.output_directory) / "result.json"
+        if not result_path.is_file():
+            raise ApiError(404, "RESULT_ARTIFACT_MISSING", "Completed job result artifact is missing")
+        try:
+            result = JobResultResponse.model_validate_json(result_path.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            raise ApiError(500, "RESULT_ARTIFACT_INVALID", "Result artifact does not match API schema") from exc
+        if artifact_key not in type(result.artifacts).model_fields:
+            raise ApiError(404, "ARTIFACT_KEY_NOT_FOUND", "Unknown artifact key")
+        relative = getattr(result.artifacts, artifact_key)
+        if not relative:
+            raise ApiError(404, "ARTIFACT_NOT_AVAILABLE", "Artifact is not available for this job")
+        path = _safe_job_file(Path(record.output_directory), relative)
+        if not path.is_file():
+            raise ApiError(404, "ARTIFACT_NOT_FOUND", "Artifact file is missing")
+        media_type = "video/mp4" if artifact_key == "processed_video" else "text/csv"
+        return FileResponse(path, media_type=media_type, filename=path.name)
+
+    @application.get(
         "/jobs/{job_id}/evidence/{event_id}", response_class=FileResponse,
         responses={
             200: {"content": {"image/jpeg": {}}},

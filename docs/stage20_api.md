@@ -15,6 +15,7 @@ Then open:
 - Health: <http://127.0.0.1:8000/health>
 - Swagger UI: <http://127.0.0.1:8000/docs>
 - OpenAPI: <http://127.0.0.1:8000/openapi.json>
+- Governed artifact download: `GET /jobs/{job_id}/artifacts/{artifact_key}`
 
 Create a job:
 

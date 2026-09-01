@@ -192,6 +192,10 @@ def test_completed_results_events_and_evidence(tmp_path: Path) -> None:
         assert events.status_code == 200 and events.json()[0]["event_id"] == "evt-1"
         evidence = client.get(f"/jobs/{job_id}/evidence/evt-1")
         assert evidence.status_code == 200 and evidence.content == b"jpeg-evidence"
+        artifact = client.get(f"/jobs/{job_id}/artifacts/processed_video")
+        assert artifact.status_code == 200 and artifact.content == b"processed"
+        assert client.get(f"/jobs/{job_id}/artifacts/../../job.json").status_code == 404
+        assert client.get(f"/jobs/{job_id}/artifacts/not_a_key").status_code == 404
         assert client.get(f"/jobs/{job_id}/evidence/missing").status_code == 404
 
 

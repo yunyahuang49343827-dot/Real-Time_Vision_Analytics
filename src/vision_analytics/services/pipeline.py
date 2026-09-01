@@ -161,12 +161,16 @@ class ExistingAnalyticsPipeline:
         )
         traffic_summary_path = output_directory / "traffic_summary.csv"
         summary.to_csv(traffic_summary_path, index=False)
-        classes.to_csv(output_directory / "class_distribution.csv", index=False)
-        direction.to_csv(output_directory / "direction_distribution.csv", index=False)
-        over_time.to_csv(output_directory / "traffic_over_time.csv", index=False)
+        class_path = output_directory / "class_distribution.csv"
+        direction_path = output_directory / "direction_distribution.csv"
+        over_time_path = output_directory / "traffic_over_time.csv"
+        event_summary_path = output_directory / "event_summary.csv"
+        classes.to_csv(class_path, index=False)
+        direction.to_csv(direction_path, index=False)
+        over_time.to_csv(over_time_path, index=False)
         event_frame = pd.DataFrame([record.to_row() for record in captured_events], columns=EVENT_FIELDS)
         build_event_summary(event_frame, {job_id: float(metadata["duration_seconds"])}).to_csv(
-            output_directory / "event_summary.csv", index=False,
+            event_summary_path, index=False,
         )
 
         if summary.empty:
@@ -204,6 +208,10 @@ class ExistingAnalyticsPipeline:
                 "events_csv": _relative(events_path, output_directory),
                 "evidence_manifest": _relative(evidence_manifest, output_directory),
                 "traffic_summary_csv": _relative(traffic_summary_path, output_directory),
+                "class_distribution_csv": _relative(class_path, output_directory),
+                "direction_distribution_csv": _relative(direction_path, output_directory),
+                "traffic_over_time_csv": _relative(over_time_path, output_directory),
+                "event_summary_csv": _relative(event_summary_path, output_directory),
             },
         }
 
