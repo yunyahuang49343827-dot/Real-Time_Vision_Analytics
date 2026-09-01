@@ -2,12 +2,20 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { CheckCircle2, CloudUpload, Film, LoaderCircle, TriangleAlert } from "lucide-react"
 import { useState } from "react"
 
-import { createAnalysisJob, getHealth, getJobStatus, type AnalysisMode } from "../../api/client"
+import {
+  createAnalysisJob,
+  getEvents,
+  getHealth,
+  getJobResults,
+  getJobStatus,
+  type AnalysisMode,
+} from "../../api/client"
 import { AppShell } from "../../components/app-shell"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader } from "../../components/ui/card"
 import { Progress } from "../../components/ui/progress"
 import { cn } from "../../lib/utils"
+import { CompletedDashboard } from "../results/completed-dashboard"
 
 const lifecycleLabels = {
   CREATED: "CREATED｜已建立",
@@ -40,11 +48,42 @@ export function AnalysisDashboard({ pollIntervalMs = 1200 }: { pollIntervalMs?: 
   })
   const status = statusQuery.data?.status ?? creation.data?.status
   const completed = status === "COMPLETED"
+  const resultsQuery = useQuery({
+    queryKey: ["job-results", jobId],
+    queryFn: () => getJobResults(jobId!),
+    enabled: Boolean(jobId && completed),
+    retry: false,
+  })
+  const eventsQuery = useQuery({
+    queryKey: ["job-events", jobId],
+    queryFn: () => getEvents(jobId!),
+    enabled: Boolean(jobId && completed),
+    retry: false,
+  })
   const progress = Math.round((statusQuery.data?.progress ?? 0) * 100)
   const busy = creation.isPending || status === "CREATED" || status === "PROCESSING"
   const displayError = statusQuery.data?.error?.message
     ?? (creation.error instanceof Error ? creation.error.message : null)
     ?? (statusQuery.error instanceof Error ? statusQuery.error.message : null)
+
+  if (completed && jobId && resultsQuery.data && eventsQuery.data) {
+    return <CompletedDashboard
+      jobId={jobId}
+      result={resultsQuery.data}
+      events={eventsQuery.data}
+      onNewAnalysis={() => {
+        setJobId(null)
+        setFile(null)
+        creation.reset()
+      }}
+    />
+  }
+
+  const completedDataError = resultsQuery.error instanceof Error
+    ? resultsQuery.error.message
+    : eventsQuery.error instanceof Error
+      ? eventsQuery.error.message
+      : null
 
   return (
     <AppShell completed={completed}>
@@ -123,7 +162,7 @@ export function AnalysisDashboard({ pollIntervalMs = 1200 }: { pollIntervalMs?: 
                 {completed && <div className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">分析已完成，可前往其他功能區查看結果。</div>}
               </div>
             )}
-            {displayError && <div role="alert" className="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{displayError}</div>}
+            {(displayError || completedDataError) && <div role="alert" className="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{displayError ?? completedDataError}</div>}
           </CardContent>
         </Card>
       </div>

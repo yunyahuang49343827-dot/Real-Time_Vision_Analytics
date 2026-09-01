@@ -4,14 +4,26 @@ import type { ReactNode } from "react"
 import { cn } from "../lib/utils"
 
 const navigation = [
-  { label: "新增分析", icon: CirclePlus, enabledBeforeCompletion: true },
-  { label: "分析總覽", icon: Activity },
-  { label: "交通分析", icon: BarChart3 },
-  { label: "事件檢視", icon: ShieldAlert },
-  { label: "工程資訊", icon: Info },
+  { id: "new", label: "新增分析", icon: CirclePlus, enabledBeforeCompletion: true },
+  { id: "overview", label: "分析總覽", icon: Activity },
+  { id: "analytics", label: "交通分析", icon: BarChart3 },
+  { id: "events", label: "事件檢視", icon: ShieldAlert },
+  { id: "engineering", label: "工程資訊", icon: Info },
 ]
 
-export function AppShell({ children, completed = false }: { children: ReactNode; completed?: boolean }) {
+export type DashboardSection = "new" | "overview" | "analytics" | "events" | "engineering"
+
+export function AppShell({
+  children,
+  completed = false,
+  activeSection = "new",
+  onNavigate,
+}: {
+  children: ReactNode
+  completed?: boolean
+  activeSection?: DashboardSection
+  onNavigate?: (section: DashboardSection) => void
+}) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white lg:flex lg:flex-col">
@@ -22,16 +34,17 @@ export function AppShell({ children, completed = false }: { children: ReactNode;
           </div>
         </div>
         <nav className="space-y-1 p-4" aria-label="主要導覽">
-          {navigation.map(({ label, icon: Icon, enabledBeforeCompletion }, index) => {
+          {navigation.map(({ id, label, icon: Icon, enabledBeforeCompletion }) => {
             const disabled = !enabledBeforeCompletion && !completed
             return (
               <button
                 key={label}
                 type="button"
                 disabled={disabled}
+                onClick={() => onNavigate?.(id as DashboardSection)}
                 className={cn(
                   "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium",
-                  index === 0 ? "bg-teal-50 text-teal-800" : "text-slate-600 hover:bg-slate-50",
+                  activeSection === id ? "bg-teal-50 text-teal-800" : "text-slate-600 hover:bg-slate-50",
                   disabled && "cursor-not-allowed text-slate-300",
                 )}
               >

@@ -1,8 +1,9 @@
 # React Vision Analytics Dashboard
 
-This is the React A frontend foundation for the local FastAPI analytics service.
-It contains the Traditional Chinese upload and job-lifecycle flow only; charts,
-event review, evidence, and processed-video views remain future frontend slices.
+This React + TypeScript dashboard connects to the local FastAPI analytics service.
+It includes the Traditional Chinese upload and job-lifecycle flow, completed-job
+overview, tracking/heatmap artifact switching, traffic charts, event filtering,
+and Evidence Snapshot review.
 
 ## Local development
 
