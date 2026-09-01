@@ -32,9 +32,11 @@ timeout, polling interval, and upload extensions are centralized in
    configured interval and displays backend progress as 0–100%.
 4. `COMPLETED` jobs load typed results and unified events. A `FAILED` job shows
    only the backend error code/message, never a traceback.
-5. Processed MP4 and structured CSVs are downloaded through the governed
+5. The browser-compatible processed MP4 and structured CSVs are downloaded through the governed
    `/jobs/{job_id}/artifacts/{artifact_key}` endpoint. The dashboard never reads
-   a backend artifact path directly.
+   a backend artifact path directly. Video playback uses only the
+   `processed_browser_video` artifact (H.264/yuv420p/faststart) and never falls
+   back to the raw OpenCV MP4.
 6. Evidence JPGs are requested only through the existing event-scoped evidence
    endpoint. Missing snapshots become warnings rather than application errors.
 7. `New Analysis` clears frontend session state and the upload widget. It does
@@ -75,3 +77,10 @@ confirmation. Final state remains:
 ```text
 MANUAL_INTEGRATION_TEST_REQUIRED
 ```
+
+FFmpeg and ffprobe were not available in the implementation environment, so
+the real H.264 codec smoke test is skipped there. If conversion is unavailable,
+the dashboard displays `Processed video unavailable in browser-compatible
+format`; results, events, analytics, and evidence remain usable. Install or
+otherwise provide FFmpeg on the API host, submit a new job, and repeat the
+manual browser playback check before marking manual integration complete.

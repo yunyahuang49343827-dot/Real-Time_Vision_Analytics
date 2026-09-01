@@ -44,6 +44,11 @@ def status_label(status: str) -> str:
     }[status]
 
 
+def preferred_browser_artifact_key(references: Mapping[str, object]) -> str | None:
+    """Never fall back to the known browser-incompatible raw OpenCV artifact."""
+    return "processed_browser_video" if references.get("processed_browser_video") else None
+
+
 def event_interpretation(event_type: str, status: str) -> str:
     if event_type == "PROXIMITY_WARNING":
         return PROXIMITY_WORDING

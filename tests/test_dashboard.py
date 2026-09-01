@@ -25,6 +25,7 @@ from vision_analytics.dashboard.formatting import (  # noqa: E402
     event_table_rows,
     format_timestamp,
     normalize_progress,
+    preferred_browser_artifact_key,
     status_label,
 )
 
@@ -79,7 +80,10 @@ def result_payload() -> dict[str, object]:
             "status": "REVIEW_REQUIRED", "count": 1,
         }],
         "artifacts": {
-            "processed_video": "processed_video.mp4", "events_csv": "events.csv",
+            "processed_video": "processed_browser.mp4",
+            "processed_raw_video": "processed_raw.mp4",
+            "processed_browser_video": "processed_browser.mp4",
+            "events_csv": "events.csv",
             "evidence_manifest": "evidence_manifest.csv",
             "traffic_summary_csv": "traffic_summary.csv",
             "class_distribution_csv": "class_distribution.csv",
@@ -173,6 +177,16 @@ def test_progress_timestamp_and_supported_status_formatting() -> None:
     for status in SUPPORTED_STATUSES:
         assert status_label(status) != "UNKNOWN"
     assert status_label("OTHER") == "UNKNOWN"
+
+
+def test_dashboard_prefers_browser_video_and_never_raw_fallback() -> None:
+    references = result_payload()["artifacts"]
+    assert preferred_browser_artifact_key(references) == "processed_browser_video"
+    assert preferred_browser_artifact_key({
+        "processed_video": None,
+        "processed_raw_video": "processed_raw.mp4",
+        "processed_browser_video": None,
+    }) is None
 
 
 def test_event_formatting_uses_governed_interpretation_wording() -> None:

@@ -57,7 +57,8 @@ outputs/api/jobs/{job_id}/
   job.json
   result.json
   input/input.<extension>
-  processed_video.mp4
+  processed_raw.mp4
+  processed_browser.mp4     # only when FFmpeg delivery transcode succeeds
   video_metadata.json
   events.csv
   crossings.csv
@@ -69,6 +70,18 @@ outputs/api/jobs/{job_id}/
   evidence_manifest.csv
   evidence/{event_id}.jpg
 ```
+
+The OpenCV artifact remains `processed_raw.mp4`. After the core pipeline
+completes, the delivery layer looks up FFmpeg with `shutil.which("ffmpeg")` and
+generates `processed_browser.mp4` using H.264 (`libx264`), `yuv420p`, no audio,
+and MP4 `+faststart`. Both paths are server-generated and must resolve inside
+the job directory. The `processed_video` compatibility reference aliases the
+browser artifact only; it never silently falls back to the raw OpenCV file.
+
+If FFmpeg is unavailable or conversion fails, the job can remain `COMPLETED`
+and retain analytics, events, evidence, and the raw video. `result.json`
+contains `VIDEO_TRANSCODE_UNAVAILABLE` or `VIDEO_TRANSCODE_FAILED`, while the
+browser artifact references remain empty.
 
 `outputs/api/` is already covered by the repository-wide `outputs/**` Git
 ignore rule. Evidence lookup first resolves `event_id` from that job's own

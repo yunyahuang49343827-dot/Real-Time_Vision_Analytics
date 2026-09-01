@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import shutil
 import sys
 import threading
 import time
@@ -75,7 +76,8 @@ class FakeRunner:
             writer = csv.DictWriter(handle, fieldnames=EVENT_FIELDS); writer.writeheader(); writer.writerow(event_row)
         (output_directory / "evidence_manifest.csv").write_text("event_id\nevt-1\n", encoding="utf-8")
         (output_directory / "traffic_summary.csv").write_text("total_line_crossing_count\n1\n", encoding="utf-8")
-        (output_directory / "processed_video.mp4").write_bytes(b"processed")
+        (output_directory / "processed_raw.mp4").write_bytes(b"raw-processed")
+        (output_directory / "processed_browser.mp4").write_bytes(b"browser-processed")
         progress_callback(0.9)
         return {
             "job_id": job_id,
@@ -90,7 +92,10 @@ class FakeRunner:
                 "status": "REVIEW_REQUIRED", "count": 1,
             }],
             "artifacts": {
-                "processed_video": "processed_video.mp4", "events_csv": "events.csv",
+                "processed_video": "processed_browser.mp4",
+                "processed_raw_video": "processed_raw.mp4",
+                "processed_browser_video": "processed_browser.mp4",
+                "events_csv": "events.csv",
                 "evidence_manifest": "evidence_manifest.csv",
                 "traffic_summary_csv": "traffic_summary.csv",
             },
@@ -192,8 +197,11 @@ def test_completed_results_events_and_evidence(tmp_path: Path) -> None:
         assert events.status_code == 200 and events.json()[0]["event_id"] == "evt-1"
         evidence = client.get(f"/jobs/{job_id}/evidence/evt-1")
         assert evidence.status_code == 200 and evidence.content == b"jpeg-evidence"
-        artifact = client.get(f"/jobs/{job_id}/artifacts/processed_video")
-        assert artifact.status_code == 200 and artifact.content == b"processed"
+        browser = client.get(f"/jobs/{job_id}/artifacts/processed_browser_video")
+        assert browser.status_code == 200 and browser.content == b"browser-processed"
+        assert browser.headers["content-type"] == "video/mp4"
+        raw = client.get(f"/jobs/{job_id}/artifacts/processed_raw_video")
+        assert raw.status_code == 200 and raw.content == b"raw-processed"
         assert client.get(f"/jobs/{job_id}/artifacts/../../job.json").status_code == 404
         assert client.get(f"/jobs/{job_id}/artifacts/not_a_key").status_code == 404
         assert client.get(f"/jobs/{job_id}/evidence/missing").status_code == 404
@@ -246,6 +254,10 @@ def test_small_service_integration_calls_existing_opencv_pipeline(tmp_path: Path
         job_id = post_video(client, video).json()["job_id"]
         assert wait_terminal(client, job_id)["status"] == "COMPLETED"
         result = client.get(f"/jobs/{job_id}/results").json()
-        output = config.job_output_directory / job_id / result["artifacts"]["processed_video"]
+        output = config.job_output_directory / job_id / result["artifacts"]["processed_raw_video"]
         assert output.is_file() and output.stat().st_size > 0
         assert result["video_metadata"]["frame_count"] == 4
+        if shutil.which("ffmpeg") is None:
+            assert result["artifacts"]["processed_video"] is None
+            assert result["artifacts"]["processed_browser_video"] is None
+            assert result["warnings"][0]["code"] == "VIDEO_TRANSCODE_UNAVAILABLE"

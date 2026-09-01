@@ -34,6 +34,7 @@ from vision_analytics.tracking.tracker import StatefulByteTracker, draw_tracks
 from vision_analytics.tracking.trajectory import TrajectoryEngine, draw_trajectory_trails
 from vision_analytics.video.metadata import profile_video
 from vision_analytics.video.pipeline import add_overlay, process_video
+from vision_analytics.services.video_delivery import transcode_browser_video
 
 ProgressCallback = Callable[[float], None]
 
@@ -124,7 +125,7 @@ class ExistingAnalyticsPipeline:
             add_overlay(frame, video_id=job_id, frame_index=frame_index, source_fps=fps)
             captured_events.extend(evidence.capture_events(frame, new_events, tracks))
 
-        processed_video = output_directory / "processed_video.mp4"
+        processed_video = output_directory / "processed_raw.mp4"
         benchmark = process_video(
             input_path, processed_video, video_id=job_id, source_id=source_id,
             frame_processor=update,
@@ -132,6 +133,14 @@ class ExistingAnalyticsPipeline:
         )
         if benchmark["status"] == "FAIL":
             raise RuntimeError(str(benchmark["validation_message"]))
+        browser_video = output_directory / "processed_browser.mp4"
+        delivery = transcode_browser_video(
+            processed_video, browser_video, job_directory=output_directory,
+        )
+        delivery_warnings = (
+            [{"code": delivery.warning_code, "message": delivery.warning_message}]
+            if delivery.warning_code and delivery.warning_message else []
+        )
 
         events_path = output_directory / "events.csv"
         _write_csv(events_path, EVENT_FIELDS, [record.to_row() for record in captured_events])
@@ -204,7 +213,15 @@ class ExistingAnalyticsPipeline:
             "traffic_analytics": traffic,
             "event_summary": event_summary,
             "artifacts": {
-                "processed_video": _relative(processed_video, output_directory),
+                "processed_video": (
+                    _relative(delivery.browser_path, output_directory)
+                    if delivery.browser_path else None
+                ),
+                "processed_raw_video": _relative(processed_video, output_directory),
+                "processed_browser_video": (
+                    _relative(delivery.browser_path, output_directory)
+                    if delivery.browser_path else None
+                ),
                 "events_csv": _relative(events_path, output_directory),
                 "evidence_manifest": _relative(evidence_manifest, output_directory),
                 "traffic_summary_csv": _relative(traffic_summary_path, output_directory),
@@ -213,6 +230,7 @@ class ExistingAnalyticsPipeline:
                 "traffic_over_time_csv": _relative(over_time_path, output_directory),
                 "event_summary_csv": _relative(event_summary_path, output_directory),
             },
+            "warnings": delivery_warnings,
         }
 
 
@@ -222,13 +240,15 @@ class OpenCVPipelineSmokeRunner:
     def run(self, input_path: Path, output_directory: Path, job_id: str,
             progress_callback: ProgressCallback) -> dict[str, object]:
         metadata = profile_video(input_path, video_id=job_id, source_id="smoke")
-        output = output_directory / "processed_video.mp4"
+        output = output_directory / "processed_raw.mp4"
         benchmark = process_video(
             input_path, output, video_id=job_id, source_id="smoke",
             progress_callback=lambda done, total: progress_callback(done / total if total else 0.0),
         )
         if benchmark["status"] == "FAIL":
             raise RuntimeError(str(benchmark["validation_message"]))
+        browser = output_directory / "processed_browser.mp4"
+        delivery = transcode_browser_video(output, browser, job_directory=output_directory)
         events = output_directory / "events.csv"; _write_csv(events, EVENT_FIELDS, [])
         evidence_manifest = output_directory / "evidence_manifest.csv"
         evidence_manifest.write_text(
@@ -246,7 +266,13 @@ class OpenCVPipelineSmokeRunner:
             "traffic_analytics": {"total_line_crossing_count": 0},
             "event_summary": [],
             "artifacts": {
-                "processed_video": output.name, "events_csv": events.name,
+                "processed_video": delivery.browser_path.name if delivery.browser_path else None,
+                "processed_raw_video": output.name,
+                "processed_browser_video": delivery.browser_path.name if delivery.browser_path else None,
+                "events_csv": events.name,
                 "evidence_manifest": evidence_manifest.name, "traffic_summary_csv": traffic.name,
             },
+            "warnings": ([{
+                "code": delivery.warning_code, "message": delivery.warning_message,
+            }] if delivery.warning_code and delivery.warning_message else []),
         }

@@ -77,7 +77,9 @@ class EventSummaryResponse(BaseModel):
 
 
 class ArtifactReferences(BaseModel):
-    processed_video: str
+    processed_video: str | None = None
+    processed_raw_video: str | None = None
+    processed_browser_video: str | None = None
     events_csv: str
     evidence_manifest: str
     traffic_summary_csv: str
@@ -87,6 +89,11 @@ class ArtifactReferences(BaseModel):
     event_summary_csv: str | None = None
 
 
+class ResultWarning(BaseModel):
+    code: str
+    message: str
+
+
 class JobResultResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     job_id: str
@@ -94,6 +101,7 @@ class JobResultResponse(BaseModel):
     traffic_analytics: TrafficAnalyticsResponse
     event_summary: list[EventSummaryResponse]
     artifacts: ArtifactReferences
+    warnings: list[ResultWarning] = Field(default_factory=list)
 
 
 class EventResponse(BaseModel):

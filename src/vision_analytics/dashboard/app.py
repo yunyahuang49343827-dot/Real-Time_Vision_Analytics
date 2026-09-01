@@ -31,6 +31,7 @@ from vision_analytics.dashboard.components import (  # noqa: E402
 from vision_analytics.dashboard.formatting import (  # noqa: E402
     event_interpretation,
     normalize_progress,
+    preferred_browser_artifact_key,
     status_label,
 )
 
@@ -80,11 +81,12 @@ def _load_completed_job(client: VisionAnalyticsApiClient, job_id: str) -> None:
 def _load_result_artifacts(client: VisionAnalyticsApiClient, job_id: str) -> None:
     result = st.session_state.results or {}
     references = result.get("artifacts", {})
-    if st.session_state.processed_video is None and references.get("processed_video"):
+    browser_key = preferred_browser_artifact_key(references)
+    if st.session_state.processed_video is None and browser_key:
         try:
-            st.session_state.processed_video = client.get_artifact(job_id, "processed_video")
+            st.session_state.processed_video = client.get_artifact(job_id, browser_key)
         except DashboardApiError as error:
-            st.warning(f"Processed video unavailable: {error.message}")
+            st.warning(f"Processed video unavailable in browser-compatible format: {error.message}")
     tables = dict(st.session_state.analytics_tables)
     for key in ("class_distribution_csv", "direction_distribution_csv", "traffic_over_time_csv"):
         if key in tables or not references.get(key):
@@ -183,7 +185,7 @@ def main() -> None:
         if st.session_state.processed_video:
             st.video(st.session_state.processed_video)
         else:
-            st.warning("Processed video is unavailable for this completed job.")
+            st.warning("Processed video unavailable in browser-compatible format")
 
         render_traffic_tables(st.session_state.analytics_tables)
         events = st.session_state.events
