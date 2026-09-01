@@ -6,4 +6,6 @@ opencv-python==5.0.0.93
 pandas==3.0.5
 PyYAML==6.0.3
 fastapi==0.141.1
+python-multipart==0.0.32
+uvicorn==0.52.4
 streamlit==1.62.0

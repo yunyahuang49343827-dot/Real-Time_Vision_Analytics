@@ -29,6 +29,7 @@ BENCHMARK_FIELDS = (
 )
 
 FrameProcessor = Callable[[object, int, float, float], None]
+ProgressCallback = Callable[[int, int], None]
 
 
 def add_overlay(
@@ -106,6 +107,7 @@ def process_video(
     source_id: str,
     output_codec: str = "mp4v",
     frame_processor: FrameProcessor | None = None,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict[str, object]:
     """Process every frame, optionally using a caller-provided in-place callback."""
     input_path = Path(input_path)
@@ -175,6 +177,8 @@ def process_video(
                 )
             writer.write(frame)
             frames_processed += 1
+            if progress_callback is not None:
+                progress_callback(frames_processed, int(input_metadata["frame_count"]))
     except (OSError, RuntimeError, cv2.error) as exc:
         processing_error = f"OpenCV processing error: {exc}"
     finally:

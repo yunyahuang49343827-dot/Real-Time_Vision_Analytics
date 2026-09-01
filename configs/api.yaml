@@ -1,0 +1,12 @@
+upload_directory: outputs/api/uploads
+job_output_directory: outputs/api/jobs
+supported_extensions: [.mp4, .mov, .avi]
+max_upload_size_mb: 500
+worker_threads: 1
+runtime_model: models/pretrained/yolo26n.pt
+scene_config: configs/scenes.yaml
+default_scene_source_id: pexels_13258685
+device: mps
+imgsz: 640
+confidence_threshold: 0.25
+tracker: bytetrack.yaml
