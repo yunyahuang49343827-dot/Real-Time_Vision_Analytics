@@ -10,6 +10,7 @@ __pycache__/
 .coverage
 htmlcov/
 frontend/node_modules/
+node_modules/
 frontend/dist/
 frontend/*.tsbuildinfo
 
@@ -29,6 +30,7 @@ data/interim/v2_openimages_review/**
 data/interim/v2_targeted_annotation/images/**
 data/interim/v2_targeted_annotation/mined/**
 data/interim/v2_targeted_annotation/contact_sheets/**
+data/interim/v2_targeted_annotation/cvat/
 
 # Generated artifacts
 outputs/**

@@ -1,237 +1,405 @@
 # Real-Time Vision Analytics & Event Detection System
 
-This repository currently contains project setup, source governance, video
-profiling, an OpenCV pipeline, the Stage 4 YOLO26n pretrained detection baseline,
-and **Stage 5 structured qualitative error analysis**. Stage 6 adds video-scoped
-ByteTrack IDs as tracking diagnostics. Spatial analysis, event detection, APIs,
-and dashboards are deliberately not implemented yet.
+即時交通影像分析與事件偵測系統。
 
-## Requirements
+本專案以交通影片為輸入，整合 **YOLO 物件偵測、ByteTrack 多目標追蹤、移動軌跡、空間事件分析、Evidence Capture、Traffic Analytics、FastAPI Backend 與 React Dashboard**。
 
-- Apple Silicon Mac
-- Python 3.11
-- Apple Metal Performance Shaders (MPS)
-- Git
+核心流程：
 
-## Setup
+**偵測 → 追蹤 → 軌跡 → 空間判斷 → 事件 → 證據 → 分析 → Dashboard**
 
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt -r requirements-dev.txt
-```
+---
 
-## Verify Stage 0
+# 專案展示
 
-The environment check downloads `yolo26n.pt` through Ultralytics on its first run,
-stores it under `models/pretrained/`, and performs one inference on an in-memory
-640 x 640 synthetic image using MPS. Model weights are ignored by Git.
+## React Dashboard
 
-```bash
-python --version
-python scripts/check_environment.py
-pytest
-git status
-```
+![React Dashboard](images/dashboard_overview.png)
 
-The check must report `PASS`. If MPS is not built or available, it exits with a
-failure instead of silently falling back to CPU.
+> **Dashboard Overview**
+> 以分析影片作為主要視覺焦點，整合 Tracking / Trajectory、交通分析、事件摘要與 Evidence Review。
+> 使用者可以快速查看主要車種、車流高峰、事件候選與分析結果，不需要直接閱讀大量 Raw Tables。
 
-## Profile Stage 1 runtime videos
+---
 
-The profiler reads container metadata and decodes only the first frame of each
-runtime video listed in `data/manifests/sources.csv`. It does not run detection
-or a full-frame benchmark.
+## Tracking / Trajectory Visualization
 
-```bash
-python scripts/profile_videos.py
-```
+![Tracking / Trajectory](images/tracking_trajectory.gif)
 
-Results are written to `data/interim/video_metadata.csv`. Source and license
-governance details are documented in `docs/data_sources.md`.
+> 使用 YOLO + ByteTrack 進行交通物件偵測與多目標追蹤，並將 Track ID 與移動軌跡視覺化。
+> Tracking 結果會提供給 Line Crossing、Direction、Dwell 與 Event Detection 等後續分析。
 
-## Run the Stage 3 OpenCV pipeline
+---
 
-The pipeline decodes each complete runtime video, adds a simple identifier/frame
-index/timestamp overlay, and writes an MP4 at the original resolution. Its
-reported processing FPS is an end-to-end decode + overlay + write baseline, not
-a pure decode or model-inference benchmark.
+## Traffic Activity Heatmap
 
-```bash
-python scripts/process_videos.py
-```
+![Traffic Activity Heatmap](images/traffic_heatmap.gif)
 
-Processed videos are written under `outputs/videos/stage3/`; benchmark results
-are written to `outputs/analytics/stage3_video_benchmark.csv`. Both are generated
-artifacts and remain Git-ignored.
+> Heatmap 根據既有 Tracking 結果累積交通物件在影像中的活動位置。
+> 顏色較集中的區域代表較頻繁的影像活動；此結果屬於 **image-space traffic activity**，不代表真實世界交通密度、事故熱點或碰撞風險。
 
-## Run the Stage 4 pretrained detection baseline
+---
 
-The detector runs `yolo26n.pt` on Apple MPS at image size 640 and confidence
-threshold 0.25. It retains person, bicycle, car, motorcycle, bus, and truck
-detection occurrences. It does not perform tracking or object counting.
-
-```bash
-python scripts/run_detection.py
-```
-
-Generated overlay MP4s, per-video detection CSV/summary JSON files, and the
-end-to-end Stage 4 benchmark remain under `outputs/` and are Git-ignored.
-
-## Prepare the Stage 5 qualitative review
-
-The preparation script computes per-class confidence distributions and selects
-96 unique frames using uniform temporal and scene-aware targeted sampling. It
-extracts raw/overlay comparison images without rerunning YOLO. Visual findings
-and limitations are documented in `docs/stage5_error_analysis.md`.
-
-```bash
-python scripts/prepare_error_analysis.py
-```
-
-Generated review frames, contact sheets, sampling summaries, and the completed
-manual review CSV remain under `outputs/` and are Git-ignored. Confidence is a
-model score, not correctness; Stage 5 does not calculate Precision, Recall, or
-mAP.
-
-## Run Stage 6 multi-object tracking
-
-The tracking script keeps one Ultralytics ByteTrack state alive across all
-sequential frames of each video. It uses the unchanged Stage 4 YOLO26n/MPS
-settings and the stock `bytetrack.yaml` configuration.
-
-```bash
-python scripts/run_tracking.py
-```
-
-Stage 6 overlay MP4s, track-observation CSV files, summary JSON files, and the
-end-to-end benchmark remain under `outputs/` and are Git-ignored. Track IDs are
-scoped to one video and are diagnostic identifiers, not traffic or business
-counts. Qualitative observations are recorded in
-`docs/stage6_tracking_review.md`.
-
-## Run the Stage 7 trajectory engine
-
-The trajectory runner adds a 30-observation bounded recent trail to each
-video-scoped Track ID and derives image-space delta, displacement, frame-gap,
-and recent-window direction features. A 5-pixel net-displacement threshold maps
-small movement to `STATIONARY`; this is a movement label, not an event.
-
-```bash
-python scripts/run_trajectory.py
-```
-
-Generated trajectory MP4s, CSV files, summary JSON files, and the end-to-end
-benchmark remain under `outputs/` and are Git-ignored. All displacement values
-are pixels, not physical distance or speed. Qualitative observations are in
-`docs/stage7_trajectory_review.md`.
-
-## Run Stage 8 line-crossing counts
-
-Stage 8 converts normalized scene lines from `configs/scenes.yaml` to finite
-pixel segments and counts a Track ID at most once per video and line. A crossing
-requires opposite line sides, finite-segment intersection, a frame gap of at
-most five, and at least three pixels of observed movement.
-
-```bash
-python scripts/run_line_crossing.py
-```
-
-Generated crossing MP4s, CSV files, summary JSON files, and the Stage 8
-benchmark remain under `outputs/` and are Git-ignored. Counts are Track-ID-based
-line crossings, not perfect Ground Truth traffic counts. Configuration and
-qualitative review are documented in `docs/stage8_line_crossing_review.md`.
-
-## Run Stage 9 polygon-zone analysis
-
-Stage 9 converts normalized polygons from `configs/scenes.yaml` to pixels and
-maintains OUTSIDE/ENTER/INSIDE/EXIT membership keyed by video, zone, and Track
-ID. Boundary points are inside; missing observations never synthesize EXIT.
-
-```bash
-python scripts/run_zone_analysis.py
-```
-
-Generated Zone overlay MP4s, ENTER/EXIT CSV files, summary JSON files, and the
-benchmark remain under `outputs/` and are Git-ignored. Zone diagnostics are not
-Ground Truth unique visitors or formal traffic analytics. Review details are in
-`docs/stage9_zone_review.md`.
-
-## Run Stage 10 wrong-way monitoring
-
-Stage 10 combines recent-window trajectory direction with polygon-zone context
-and config-defined allowed directions. A disallowed, non-stationary movement
-must meet the pixel-displacement threshold for consecutive observations before
-one video/zone/Track diagnostic is confirmed.
-
-```bash
-python scripts/run_wrong_way.py
-```
-
-Generated overlays, per-video detection CSV/summary JSON files, and the Stage 10
-benchmark remain under `outputs/` and are Git-ignored. Natural videos may
-legitimately produce zero confirmed wrong-way rows; rules are not reversed to
-manufacture detections. Review details are in
-`docs/stage10_wrong_way_review.md`.
-
-## Run Stage 11 temporal rules
-
-Stage 11 maintains separate observed episodes for `LONG_DWELL` and
-`STATIONARY_VEHICLE`. Dwell uses source timestamps and Zone state; stationary
-monitoring additionally requires an explicitly configured zone, vehicle class,
-duration, and low frame-diagonal-normalized image displacement.
-
-```bash
-python scripts/run_temporal_rules.py
-```
-
-Temporary missing observations do not synthesize EXIT, while gaps beyond the
-configured limit restart observable continuity. Generated overlays, CSV/summary
-files, and the benchmark remain Git-ignored under `outputs/`. These diagnostics
-are not physical speed measurements or formal accuracy results. Review details
-are in `docs/stage11_temporal_rules_review.md`.
-
-## Run Stage 12 person–vehicle proximity
-
-Stage 12 filters Tracks by configured mixed-traffic Zone and class before
-computing minimum person-to-vehicle bbox gap. Pixel distance is divided by the
-frame diagonal, then a trigger/release hysteresis and consecutive-observation
-rule produce episode-deduplicated warnings.
-
-```bash
-python scripts/run_proximity.py
-```
-
-The bicycle/motorcycle overlap heuristic reduces likely rider/self-vehicle pairs
-but is not a rider classifier. Outputs are normalized image-space proximity
-diagnostics—not physical distance, collision probability, near-miss, or TTC.
-Review details are in `docs/stage12_proximity_review.md`.
-
-## Run Stage 13 unified event engine
-
-Stage 13 runs the existing spatial and temporal rule engines in one frame loop,
-then normalizes only their newly emitted records into a traceable Event schema.
-Severity and status come from `configs/scenes.yaml`; rule candidates such as
-wrong-way and proximity remain `REVIEW_REQUIRED`.
-
-```bash
-python scripts/run_event_engine.py
-```
-
-Person `ENTER` creates `PEDESTRIAN_INTRUSION` only for zones explicitly marked
-`restricted_for_person`. Event counts are system rule outputs, not verified
-incidents. Stage 13 does not capture snapshots or clips. Policy and output review
-are documented in `docs/stage13_event_engine_review.md`.
-
-## Project layout
+# 系統架構
 
 ```text
-configs/
-data/{raw,interim,processed,manifests}/
-models/{pretrained,finetuned}/
-outputs/{videos,detections,tracks,events,analytics,evidence}/
-src/vision_analytics/{video,detection,tracking,spatial,events,analytics,services,utils}/
-scripts/
-tests/
+交通影片
+    ↓
+影片驗證
+    ↓
+OpenCV Frame Pipeline
+    ↓
+YOLO Object Detection
+    ↓
+ByteTrack Multi-Object Tracking
+    ↓
+Trajectory Engine
+    ↓
+Spatial Intelligence
+    ├─ Line Crossing
+    ├─ Zone / ROI
+    ├─ Direction
+    ├─ Dwell / Stationary
+    └─ Proximity
+    ↓
+Event Engine
+    ↓
+Evidence Capture
+    ↓
+Traffic Analytics
+    ↓
+FastAPI
+    ↓
+React Dashboard
 ```
+
+---
+
+# 核心功能
+
+- **物件偵測**：Person、Bicycle、Car、Motorcycle、Bus、Truck
+- **多目標追蹤**：ByteTrack 維持跨 frame 的 Track ID
+- **移動軌跡**：保存 Track 歷史位置並進行視覺化
+- **Line Crossing**：以 Track-based Count 判斷是否通過虛擬計數線
+- **Zone / ROI**：Zone Entry、Zone Exit、Occupancy、Peak Occupancy
+- **Wrong-Way Candidate**：依移動方向產生逆向候選
+- **Dwell / Stationary**：長時間停留與靜止車輛判斷
+- **Proximity Warning**：Person–Vehicle image-space proximity 候選
+- **Event Review**：統一 Event Schema 與人工檢視
+- **Evidence Capture**：事件對應 Evidence Snapshot
+- **Traffic Analytics**：車種分布、車流趨勢、方向、Zone Activity、Peak Interval
+- **Tracking / Heatmap Visualization**
+- **React Dashboard**
+
+---
+
+# Event Types
+
+目前支援：
+
+- `LINE_CROSSING｜通過計數線`
+- `ZONE_ENTRY｜進入區域`
+- `ZONE_EXIT｜離開區域`
+- `WRONG_WAY｜逆向候選`
+- `LONG_DWELL｜長時間停留`
+- `STATIONARY_VEHICLE｜靜止車輛`
+- `PEDESTRIAN_INTRUSION｜行人進入監控區`
+- `PROXIMITY_WARNING｜接近警示`
+
+部分事件屬於規則候選，需要人工確認：
+
+- **Wrong-Way**：不代表已確認交通違規
+- **Proximity Warning**：不代表實際距離或碰撞風險
+- **Line Crossing**：不代表完整交通流量普查
+
+---
+
+# Runtime Profiles
+
+| 分析模式 | imgsz | Confidence |
+|---|---:|---:|
+| 一般道路 Standard | 640 | 0.25 |
+| 空拍 Aerial | 960 | 0.15 |
+
+正式 runtime 使用 **YOLO26n pretrained model**。
+
+---
+
+# Data
+
+## Runtime Traffic Videos
+
+使用 Pexels 公開交通影片作為 Demo，包含：
+
+- Highway
+- Taipei
+- Urban
+- Aerial Intersection
+
+主要用於：
+
+- Object Detection
+- Tracking
+- Trajectory
+- Event Detection
+- Traffic Analytics
+- Dashboard Demo
+
+## Taiwan Traffic Dataset
+
+使用 Taiwan Traffic Dataset 進行：
+
+- Dataset QA
+- Object Distribution Analysis
+- Small Object Analysis
+- Fine-tuning Experiment
+- Baseline Evaluation
+- Locked Test
+
+Dataset QA 發現 small objects 比例偏高，Person 樣本量相對不足。
+
+---
+
+# Model Evaluation 與 Governance
+
+本專案除了使用 pretrained model，也進行 Taiwan Traffic Dataset fine-tuning。
+
+Locked Test：
+
+| Model | Precision | Recall | mAP50 | mAP50-95 |
+|---|---:|---:|---:|---:|
+| Pretrained | 0.3731 | 0.2683 | 0.2253 | 0.0897 |
+| Fine-tuned Candidate | 0.8250 | 0.5592 | 0.6462 | 0.3712 |
+
+雖然 Fine-tuned Candidate 整體指標提升，但 class-level evaluation 發現：
+
+**Fine-tuned Candidate 的 Person Recall = 0**
+
+Pretrained model 的 Person Recall 約為：
+
+**0.2957**
+
+因此 Promotion Decision 為：
+
+**Candidate Model：REJECTED**
+
+正式 runtime 繼續使用 pretrained model。
+
+此流程展示：
+
+- Dataset QA
+- Baseline Evaluation
+- Fine-tuning
+- Locked Test
+- Class-level Regression Detection
+- Promotion Gate
+- Model Governance
+
+而不是只依賴整體 mAP 決定是否部署模型。
+
+---
+
+# 技術架構
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- TanStack Query
+- Recharts
+
+前端負責：
+
+- Video Upload
+- Job Status
+- Progress Polling
+- KPI
+- Tracking / Heatmap Video
+- Traffic Analytics
+- Event Review
+- Evidence Review
+- Engineering Information
+
+前端不執行 YOLO 或 Event Calculation。
+
+## Backend
+
+- FastAPI
+- REST API
+- Job-based Processing
+- H.264 Browser-compatible Video Delivery
+
+Job Lifecycle：
+
+```text
+CREATED
+   ↓
+PROCESSING
+   ↓
+COMPLETED / FAILED
+```
+
+主要 API：
+
+```text
+GET  /health
+POST /jobs
+GET  /jobs/{job_id}
+GET  /jobs/{job_id}/results
+GET  /jobs/{job_id}/events
+GET  /jobs/{job_id}/evidence/{event_id}
+```
+
+## AI / Computer Vision
+
+- Python
+- PyTorch
+- Ultralytics YOLO
+- ByteTrack
+- OpenCV
+- Supervision
+
+Supervision 主要負責 Visualization Layer：
+
+- Bounding Box
+- Label
+- Track Trace
+- Traffic Activity Heatmap
+
+核心 Track ID 仍由既有 ByteTrack pipeline 管理。
+
+## Data / Analytics
+
+資料處理與分析包含：
+
+- Video Frame Processing
+- Detection Records
+- Track Records
+- Trajectory History
+- Event Records
+- Evidence Metadata
+- Traffic Interval Analytics
+- Class Distribution
+- Direction Distribution
+- Zone Activity
+
+Structured outputs 透過 FastAPI 提供給 React Dashboard。
+
+---
+
+# Testing
+
+## Backend / Python
+
+```text
+268 tests passed
+```
+
+## Frontend
+
+```text
+15 tests passed
+```
+
+## Production Build
+
+```text
+TypeScript / Vite Build：PASS
+```
+
+## Dependency Audit
+
+```text
+npm audit：0 vulnerabilities
+```
+
+Browser Smoke Test 已驗證：
+
+- Standard / Aerial Video Upload
+- Job Polling
+- Processing Progress
+- COMPLETED State
+- Tracking / Heatmap Switching
+- Traffic Analytics
+- Events
+- Evidence State
+- Responsive Layout
+- New Analysis
+
+Browser Console：
+
+```text
+0 errors
+```
+
+---
+
+# 本機啟動
+
+## 1. 啟動 FastAPI
+
+```bash
+source .venv/bin/activate
+uvicorn vision_analytics.api.app:app --app-dir src --reload
+```
+
+FastAPI：
+
+```text
+http://127.0.0.1:8000
+```
+
+## 2. 啟動 React Dashboard
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+React Dashboard：
+
+```text
+http://localhost:5173
+```
+
+---
+
+# 專案重點
+
+這個專案展示完整的 Computer Vision Engineering Workflow：
+
+```text
+Object Detection
+      ↓
+Multi-Object Tracking
+      ↓
+Trajectory
+      ↓
+Spatial Intelligence
+      ↓
+Event Detection
+      ↓
+Evidence
+      ↓
+Traffic Analytics
+      ↓
+FastAPI
+      ↓
+React Dashboard
+```
+
+除了模型本身，也包含：
+
+- Dataset QA
+- Model Evaluation
+- Locked Test
+- Regression Detection
+- Model Promotion Decision
+- Backend API
+- Frontend Dashboard
+- Automated Testing
+
+專案核心不只是使用 YOLO 偵測交通物件，而是將 Computer Vision 模型整合成一套可分析、可檢視、可評估的端到端交通影像分析系統。
